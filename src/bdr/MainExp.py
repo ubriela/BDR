@@ -26,12 +26,12 @@ sys.path.append('../plot/code')
 from Utils import rect_area,zipf_pmf
 # from draw_workcell import getLeafNode
 
-# seed_list = [2172]
-seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
+seed_list = [2172]
+# seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
 method_list = None
 exp_name = None
-dataset_identifier = "_zipf"
+dataset_identifier = "_mediaq"
 
 def sample_data(data, p):
     # print data.shape
@@ -243,7 +243,7 @@ def eval_analyst(data, param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
-    analyst = [4,5,6,7,8]
+    analyst = [2,3,4,5,6,7,8]
     bandwidth = 20    # fixed
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
@@ -399,8 +399,8 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
-    eval_workload(data, param)
-    # eval_analyst(data, param)
+    # eval_workload(data, param)
+    eval_analyst(data, param)
     # eval_bandwidth(data, param)
     # eval_skewness(data, param)
     # eval_runtime(data, param)

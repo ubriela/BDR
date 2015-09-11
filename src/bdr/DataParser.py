@@ -45,13 +45,15 @@ def read_data(file):
 
             # new fovs
             fovs = []
+            fov = FOV(data[3][idx],data[4][idx],data[10][idx],data[12][idx],data[13][idx])
+            fovs.append(fov)
 
         idx = idx + 1
         prev_vid = vid
 
     return videos
 
-if True:
+if False:
 
     param = Params(1000)
     param.select_dataset()

@@ -4,8 +4,8 @@ import math
 from shapely.geometry import Polygon
 
 from Params import Params
-from UtilsBDR import mbr_to_path
-from UtilsBDR import mbr_to_cellids
+from UtilsBDR import mbr_to_cellids, mbr_to_path, distance_km, angle_bwn_two_points
+
 
 """
 Field of View
@@ -28,6 +28,13 @@ class FOV(object):
         self.R = R
         self.alpha = alpha
 
+    def __init__(self, geojson):
+        self.lat = geojson.geometry.coordinates[1]
+        self.lon = geojson.geometry.coordinates[0]
+        self.compass = float(geojson.properties['theta_x'])
+        self.R = float(geojson.properties['r']) * 200
+        self.alpha = float(geojson.properties['alpha'])
+
     def metadata(self):
         return self.lat,self.lon,self.compass, self.alpha, self.R
 
@@ -38,6 +45,9 @@ class FOV(object):
         polygon = Polygon(mbr_to_path(self.mbr()))
         return polygon.area/(1000000*Params.ONE_KM*Params.ONE_KM)
 
+    """
+    Mininum Bounding Rectangle of the FOV
+    """
     def mbr(self):
         lat, lon, compass, alpha, R = self.metadata()
         R = R/1000.0
@@ -94,7 +104,7 @@ class FOV(object):
         return [[mbr_bottom, mbr_left], [mbr_ceil, mbr_right]]
 
     """
-    return a set of cell ids that this FOV covers
+    Return a set of cell ids that this FOV covers
     """
     def cellids(self, param):
         return mbr_to_cellids(self.mbr(), param)
@@ -104,3 +114,16 @@ class FOV(object):
         if self.id:
             return str(self.id) + "\t" + content
         return content
+
+    """
+    Check if a point inside a circle sector
+    """
+    def cover(self, plat, plng):
+        angle = angle_bwn_two_points(self.lat, self.lon, plat, plng)
+        distance = distance_km(self.lat, self.lon, plat, plng)
+        # print angle, distance
+        if abs(angle - self.compass/2) < 30 and distance < self.R:
+            return True
+        else:
+            return False
+    # print within_circular(34.024734, -118.284988,34.018212,-118.291716,45,1)

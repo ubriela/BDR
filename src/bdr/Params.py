@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "uni"
+    DATASET = "gowalla_hawaii"
 
     NDATA = None
     NDIM = None
@@ -16,17 +16,20 @@ class Params(object):
 
     # for grid standard
     # maxHeight = 2
-    part_size = 6
-    ANALYST_COUNT = 36
+    # part_size = 6
+    # ANALYST_COUNT = 36
+
+    part_size = 8
+    ANALYST_COUNT = 256
 
     GRID_SIZE = 200
 
-    def __init__(self, seed):
+    def __init__(self, seed, x_min = None, y_min = None, x_max = None, y_max = None):
         self.Seed = seed
         self.minPartSize = 2 ** 0  # maximum number of data points in a leaf node
 
         self.resdir = ""
-        self.x_min, self.y_min, self.x_max, self.y_max = None, None, None, None
+        self.x_min, self.y_min, self.x_max, self.y_max = x_min, y_min, x_max, y_max
         self.NDATA = None
         self.NDIM = None
         self.LOW = None
@@ -37,6 +40,27 @@ class Params(object):
         print self.NDATA, self.NDIM, self.LOW, self.HIGH
 
     def select_dataset(self):
+        if Params.DATASET == "test":
+            self.dataset = '../../dataset/gowalla_sample.dat'
+            self.resdir = '../../output/'
+            self.x_min = 34.018212
+            self.y_min = -118.291716
+            self.x_max = 34.025296
+            self.y_max = -118.279826
+        if Params.DATASET == "mediaq":
+            self.dataset = '../../dataset/mediaq/mediaq_fovs.dat'
+            self.resdir = '../../output/mediaq/'
+            self.x_min = 34.018212
+            self.y_min = -118.291716
+            self.x_max = 34.025296
+            self.y_max = -118.279826
+        if Params.DATASET == "gowalla_hawaii":
+            Params.resdir = '../../output/gowalla_hawaii/'
+            Params.dataset = '../../dataset/gowalla_hawaii.dat'
+            Params.x_min = 18.91532645
+            Params.y_min = -159.7767291
+            Params.x_max = 33.447139765
+            Params.y_max = -118.320278317
         if Params.DATASET == "mcdonald":
             self.dataset = '../../dataset/mcdonald.dat'
             self.resdir = '../../output/mcdonald/'

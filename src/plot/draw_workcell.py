@@ -18,13 +18,13 @@ import matplotlib.pyplot as plt
 def getPathData(data, param):
     path_data = []
 
-    tree = Grid_standard(data, param)
-    # tree = Quad_standard(data, param)
+    # tree = Grid_standard(data, param)
+    tree = Quad_standard(data, param)
     # tree = Kd_standard(data, param)
     tree.buildIndex()
     print "data points: ", tree.checkCorrectness(tree.root)
 
-    leaf_boxes = getLeafNode(tree, 1)
+    leaf_boxes = getLeafNode(tree, 2)
 
     for data in leaf_boxes:
         # [[x_min,y_min],[x_max,y_max]]
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, filename='../../log/debug.log')
 
     # dataset_list = ['yelp', 'foursquare', 'gowallasf', 'gowallala']
-    dataset_list = ['la']
+    dataset_list = ['gowalla_hawaii']
 
     for dataset in dataset_list:
         param = Params(1000)
@@ -89,7 +89,8 @@ if __name__ == '__main__':
             path = data[0]
             codes, verts = zip(*path)
             path = mpath.Path(verts, codes)
-            weight = min(1, (data[1] + 0.0) / 500)
+            # weight = min(1, (data[1] + 0.0) / 500)
+            weight = 1
             patch = mpatches.PathPatch(path, facecolor='white', alpha=weight)
             ax.add_patch(patch)
 
@@ -100,4 +101,4 @@ if __name__ == '__main__':
 
         ax.grid()
         # ax.axis('equal')
-        savefig('../../dataset/graph/' + param.DATASET + '.eps', format='eps', dpi=1000)
+        savefig('../../dataset/graph/' + param.DATASET + '.jpg', format='jpeg', dpi=400)

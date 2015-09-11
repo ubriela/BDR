@@ -35,7 +35,7 @@ seed_list = [2172]
 
 method_list = None
 exp_name = None
-dataset_identifier = "_fov_test"
+dataset_identifier = "_fov_mediaq"
 
 
 """
@@ -230,9 +230,9 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
-    eval_partition(data, param)
+    # eval_partition(data, param)
 
-    # eval_analyst(data, param)
+    eval_analyst(data, param)
     # eval_bandwidth(data, param)
     # eval_skewness(data, param)
 
