@@ -7,7 +7,7 @@ from Node import Node
 from Params import Params
 
 import sys
-sys.path.append('../../../../../../_Research/_Crowdsourcing/_Privacy/privategeocrowddynamic/src/common')
+sys.path.append('../../../privategeocrowddynamic/src/common')
 sys.path.append('../plot/code')
 
 from Utils import is_rect_cover, rect_area

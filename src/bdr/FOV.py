@@ -21,19 +21,19 @@ class FOV(object):
         self.R = 250
 
 
-    def __init__(self, lat, lon, compass, R, alpha):
-        self.lat = lat
-        self.lon = lon
-        self.compass = compass
-        self.R = R
-        self.alpha = alpha
-
     def __init__(self, geojson):
         self.lat = geojson.geometry.coordinates[1]
         self.lon = geojson.geometry.coordinates[0]
         self.compass = float(geojson.properties['theta_x'])
         self.R = float(geojson.properties['r']) * 200
         self.alpha = float(geojson.properties['alpha'])
+
+    def __init__(self, lat, lon, compass, R, alpha):
+        self.lat = lat
+        self.lon = lon
+        self.compass = compass
+        self.R = R
+        self.alpha = alpha
 
     def metadata(self):
         return self.lat,self.lon,self.compass, self.alpha, self.R

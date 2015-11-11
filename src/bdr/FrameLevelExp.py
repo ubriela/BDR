@@ -23,7 +23,7 @@ from Quad_standard import Quad_standard
 from knapsack import zeroOneKnapsack
 from UtilsBDR import cell_coord
 
-from MainExp import compute_urgency, data_readin
+from VideoLevelExp import compute_urgency, data_readin
 
 # sys.path.append('../../../../../../_Research/_Crowdsourcing/_Privacy/privategeocrowddynamic/src/common')
 sys.path.append('../plot/code')
@@ -230,6 +230,7 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
+    print data
     # eval_partition(data, param)
 
     eval_analyst(data, param)

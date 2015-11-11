@@ -7,7 +7,7 @@ from shapely.ops import cascaded_union
 
 import sys
 # https://github.com/ubriela/geocrowd-priv-dynamic
-sys.path.append('../../../../../../_Research/_Crowdsourcing/_Privacy/privategeocrowddynamic/src/common')
+sys.path.append('../../../privategeocrowddynamic/src/common')
 sys.path.append('../plot/code')
 
 from Utils import rect_area

@@ -8,7 +8,7 @@ import sys
 sys.path.append('../bdr')
 
 from Params import Params
-from MainExp import data_readin
+from VideoLevelExp import data_readin
 
 param = Params(1000)
 data = data_readin(param)

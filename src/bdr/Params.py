@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "gowalla_hawaii"
+    DATASET = "mediaq"
 
     NDATA = None
     NDIM = None
@@ -10,7 +10,7 @@ class Params(object):
     unitGrid = 0.01  # cell unit in kd-cell
     ONE_KM = 0.0089982311916  # convert km to degree
     ZIPFIAN_SKEW = 2
-    URGENCY_RANDOM = False
+    URGENCY_RANDOM = True
 
     POPULATION_FILE = '../../dataset/gowalla_CA.dat'
 
@@ -47,6 +47,13 @@ class Params(object):
             self.y_min = -118.291716
             self.x_max = 34.025296
             self.y_max = -118.279826
+        if Params.DATASET == "gsv":
+            self.dataset = '../../dataset/gsv/gsv.txt'
+            self.resdir = '../../output/gsv/'
+            self.x_min = 40.434434
+            self.y_min = -80.01598
+            self.x_max = 40.449232
+            self.y_max = -79.98
         if Params.DATASET == "mediaq":
             self.dataset = '../../dataset/mediaq/mediaq_fovs.dat'
             self.resdir = '../../output/mediaq/'

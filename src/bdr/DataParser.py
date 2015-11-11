@@ -1,18 +1,13 @@
 __author__ = 'ubriela'
 
-
-import time
 import os
-import random
-import math
 import numpy as np
-import sys
-import logging
-from Exp import Exp
 from Params import Params
 from Video import Video
 from FOV import FOV
-from Utils import zipf_pmf
+import urllib
+import xml.etree.ElementTree as ET
+import json
 
 """
 filename,fileID,fovnum,Plat,Plng,Px,Py,prevX,prevY,speed,dir,prevDir,R,alpha,timestamp
@@ -53,27 +48,81 @@ def read_data(file):
 
     return videos
 
-if False:
+"""
+lat 0
+lon 1
+dir 2
+"""
+def read_image_data(file):
+    data = np.genfromtxt(file, unpack=True)
 
-    param = Params(1000)
-    param.select_dataset()
-    videos = read_data(os.path.splitext(param.dataset)[0] + ".txt")
-
-    video_locs = np.zeros((2,len(videos)))
     idx = 0
-    for v in videos:
-        vl = v.location()
-        video_locs[0,idx] = vl[0]
-        video_locs[1,idx] = vl[1]
+    fovs = []
+    for i in range(0,data.shape[1]):
+        fov = FOV(data[0][idx],data[1][idx],data[2][idx], 60, 250)
+        fov.id = idx
         idx = idx + 1
+        fovs.append(fov)
 
-    # print video_locs
+    return fovs
 
-    np.savetxt(param.dataset, video_locs.transpose(), fmt='%.4f\t')
 
-    # print sum([v.size for v in videos])
+"""
+LON,LAT,PGA,PGV,MMI,PSA03,PSA10,PSA30,STDPGA,URAT,SVEL
+LOT 0
+LAT 1
+MMI 2
+"""
 
-    # for v in videos:
-        # print v.area(), "\t", v.sum_fov_area()
-        # print v.location()
+def read_shakemap_xml(url='http://earthquake.usgs.gov/earthquakes/shakemap/global/shake/20002926/download/grid.xml'):
+    u = urllib.urlopen(url)
+    # u is a file-like object
+    data = u.read()
+    root = ET.fromstring(data)
+    for child in root.getchildren():
+        if child.tag.endswith('event'):
+            print child.attrib
+        if child.tag.endswith('grid_specification'):
+            print child.attrib["lat_min"], child.attrib["lon_min"], child.attrib["lat_max"], child.attrib["lon_max"]
+            print child.attrib["nlat"], child.attrib["nlon"], child.attrib["nominal_lat_spacing"], child.attrib["nominal_lon_spacing"]
+        if child.tag.endswith('grid_data'):
+            grid_data = child.text
+            rows = grid_data.split("\n")
+            for row in rows:
+                values = row.split(" ")
+                print values[0], values[1], values[4]
+                if len(values) == 11 and float(values[4]) > 7:
+                    pass
+
+
+
+
+
+if True:
+
+    if False:    # read shakemap file
+        read_shakemap_xml()
+
+    if True:   # read video metadata
+        param = Params(1000)
+        param.select_dataset()
+        videos = read_data(os.path.splitext(param.dataset)[0] + ".txt")
+
+        video_locs = np.zeros((2,len(videos)))
+        idx = 0
+        for v in videos:
+            vl = v.location()
+            video_locs[0,idx] = vl[0]
+            video_locs[1,idx] = vl[1]
+            idx = idx + 1
+
+        # print video_locs
+
+        np.savetxt(param.dataset, video_locs.transpose(), fmt='%.4f\t')
+
+        # print sum([v.size for v in videos])
+
+        # for v in videos:
+            # print v.area(), "\t", v.sum_fov_area()
+            # print v.location()
 

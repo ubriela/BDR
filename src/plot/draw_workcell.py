@@ -7,7 +7,7 @@ import numpy as np
 sys.path.append('../bdr')
 
 from Params import Params
-from MainExp import data_readin
+from VideoLevelExp import data_readin
 from Kd_standard import Kd_standard
 from Quad_standard import Quad_standard
 from Grid_standard import Grid_standard

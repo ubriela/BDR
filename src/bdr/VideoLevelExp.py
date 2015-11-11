@@ -51,7 +51,7 @@ def data_readin(p):
     logging.debug(data.shape)
     logging.debug(p.LOW)
     logging.debug(p.HIGH)
-    return data
+    return data[0:2]
 
 
 def gen_query(queryShape, seed, param):
