@@ -114,6 +114,7 @@ def eval_partition(data, param):
 
     print optimization(tree, fov_count, seed, param)
 
+# varying the number of analysts, measure the total visual awareness
 def eval_analyst(data, param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
@@ -146,6 +147,7 @@ def eval_analyst(data, param):
     res_value_summary = np.average(res_cube_value, axis=1)
     np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
 
+# varying the bandwidth constraint
 def eval_bandwidth(data, param):
     logging.info("eval_bandwidth")
     exp_name = "eval_bandwidth"

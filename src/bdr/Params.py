@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "mediaq"
+    DATASET = "gsv"
 
     NDATA = None
     NDIM = None

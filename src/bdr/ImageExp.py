@@ -12,15 +12,12 @@ from sets import Set
 
 # import multiprocessing as mult
 import sys
-import re
 import logging
-from Exp import Exp
 from Params import Params
-from DataParser import read_data, read_image_data
+from DataParser import read_image_data
 from Grid_standard import Grid_standard
 from Kd_standard import Kd_standard
 from Quad_standard import Quad_standard
-from knapsack import zeroOneKnapsack
 from UtilsBDR import cell_coord
 
 from VideoLevelExp import compute_urgency, data_readin
@@ -35,7 +32,8 @@ seed_list = [2172]
 
 method_list = None
 exp_name = None
-dataset_identifier = "_fov_mediaq"
+# dataset_identifier = "_fov_mediaq"
+dataset_identifier = "_fov_gsv"
 
 
 """
@@ -101,12 +99,13 @@ def eval_partition(data, param):
 
     print optimization(tree, fov_count, seed, param)
 
+# varying the number of analysts, measure the total visual awareness
 def eval_analyst(data, param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
     analyst = [4,5,6,7,8]
-    fov_count = 200    # fixed
+    fov_count = 100    # fixed
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
     res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
@@ -133,6 +132,7 @@ def eval_analyst(data, param):
     res_value_summary = np.average(res_cube_value, axis=1)
     np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
 
+# varying the bandwidth constraint
 def eval_bandwidth(data, param):
     logging.info("eval_bandwidth")
     exp_name = "eval_bandwidth"
@@ -177,7 +177,7 @@ def eval_skewness(data, param):
     analyst = 6
     param.part_size = analyst
     param.ANALYST_COUNT = analyst * analyst
-    fov_count = 200    # fixed
+    fov_count = 100    # fixed
 
     skewness = [1.6,1.8,2.0,2.2,2.4]
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
@@ -218,10 +218,9 @@ if __name__ == '__main__':
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
     eval_partition(data, param)
-
-    # eval_analyst(data, param)
-    # eval_bandwidth(data, param)
-    # eval_skewness(data, param)
+    eval_analyst(data, param)
+    eval_bandwidth(data, param)
+    eval_skewness(data, param)
 
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")

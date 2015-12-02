@@ -98,7 +98,7 @@ def read_shakemap_xml(url='http://earthquake.usgs.gov/earthquakes/shakemap/globa
 
 
 
-if True:
+if False:
 
     if False:    # read shakemap file
         read_shakemap_xml()
