@@ -30,6 +30,9 @@ def max_cover(universe, all_sets, budget, weights):
             covered_sets.add(best_setid)
             universe.difference_update(all_sets.get(best_setid))
             covered_items.update(all_sets.get(best_setid))
+            # print best_setid
+            # print universe
+            # print covered_items
             del all_sets[best_setid]
 
     covered_weight = sum([weights[item] for item in covered_items])
@@ -46,7 +49,7 @@ if False:
     all_sets[1] = Set([2,4])
     all_sets[2] = Set([3,4])
     all_sets[3] = Set([4,5])
-    budget = 1
+    budget = 2
 
     print max_cover(universe, all_sets, budget, weights)
 
