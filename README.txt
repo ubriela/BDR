@@ -4,6 +4,8 @@ Hien To, Seon Ho Kim, Cyrus Shahabi. Effectively Crowdsourcing the Acquisition a
 
 Please email ubriela@gmail.com for the datasets.
 
+*** Parameters
+Params.py
 
 *** Video Level Optimization
 VideoLevelExp.py
