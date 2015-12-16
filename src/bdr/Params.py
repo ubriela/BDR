@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "mediaq"
+    DATASET = "pbs"
 
     NDATA = None
     NDIM = None
@@ -47,6 +47,14 @@ class Params(object):
             self.y_min = -118.291716
             self.x_max = 34.025296
             self.y_max = -118.279826
+
+        if Params.DATASET == "pbs":
+            self.dataset = '../../dataset/mediaq_pbs/pbs_cleaned.dat'
+            self.resdir = '../../output/pbs/'
+            self.x_min = 1.286748
+            self.y_min = -118.293334
+            self.x_max = 34.032604
+            self.y_max = 103.866564
         if Params.DATASET == "gsv":
             self.dataset = '../../dataset/gsv/gsv.txt'
             self.resdir = '../../output/gsv/'

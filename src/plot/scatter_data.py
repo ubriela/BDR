@@ -19,8 +19,8 @@ y = data[1]
 colors = [0 for i in range(len(x))]
 area = [1 for i in range(len(x))]
 
-# print x
-# print y
+print x
+print y
 
 plt.scatter(x, y, s=area, c=colors, alpha=0.5)
 plt.show()
