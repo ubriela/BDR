@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "pbs"
+    DATASET = "mediaq"
 
     NDATA = None
     NDIM = None
@@ -65,10 +65,10 @@ class Params(object):
         if Params.DATASET == "mediaq":
             self.dataset = '../../dataset/mediaq/mediaq_fovs.dat'
             self.resdir = '../../output/mediaq/'
-            self.x_min = 34.018212
-            self.y_min = -118.291716
-            self.x_max = 34.025296
-            self.y_max = -118.279826
+            self.x_min = -180
+            self.y_min = -90
+            self.x_max = 180
+            self.y_max = 90
         if Params.DATASET == "gowalla_hawaii":
             Params.resdir = '../../output/gowalla_hawaii/'
             Params.dataset = '../../dataset/gowalla_hawaii.dat'

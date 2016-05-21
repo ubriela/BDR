@@ -2,6 +2,7 @@ from Params import Params
 
 """ generic node class """
 
+from UtilsBDR import distance_km
 class Node(object):
     """ generic tree node class """
 
@@ -16,6 +17,10 @@ class Node(object):
 
         self.urgency = 3
         self.children = []  # list of its children
+
+    def area(self):
+        a = distance_km(self.n_box[0,0],self.n_box[0,1],self.n_box[0,0],self.n_box[1,1]) * distance_km(self.n_box[0,0],self.n_box[0,1],self.n_box[1,0],self.n_box[0,1]);
+        return a
 
     def update_count(self):
         if self.n_isLeaf is False:

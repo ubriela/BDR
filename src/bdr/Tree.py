@@ -48,12 +48,22 @@ class Tree(object):
             count = curr.n_data.shape[1]
         return count
 
-    def testLeaf(self, curr):
+    # this function is used in BDR paper
+    def testLeaf_bdr(self, curr):
         """ test whether a node should be a leaf node """
         if (curr.n_data is None or curr.n_data.shape[1] == 0) or \
             self.cell_count >= self.param.ANALYST_COUNT or \
                 (curr.n_count <= self.param.minPartSize) or \
                     rect_area(curr.n_box) < 0.01:
+            return True
+        return False
+
+    def testLeaf(self, curr):
+        """ test whether a node should be a leaf node """
+        if (curr.n_data is None or curr.n_data.shape[1] == 0) or \
+            curr.area() < 0.0004 or \
+                (curr.n_count <= self.param.minPartSize) or \
+                    rect_area(curr.n_box) < 0.0004:
             return True
         return False
 

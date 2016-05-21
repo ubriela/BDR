@@ -18,16 +18,26 @@ import matplotlib.pyplot as plt
 def getPathData(data, param):
     path_data = []
 
+
+    start = time.time()
+
     # tree = Grid_standard(data, param)
     tree = Quad_standard(data, param)
     # tree = Kd_standard(data, param)
+
     tree.buildIndex()
+
+    print "time ", time.time() - start
     print "data points: ", tree.checkCorrectness(tree.root)
+
+
 
     leaf_boxes = getLeafNode(tree, 2)
 
     for data in leaf_boxes:
         # [[x_min,y_min],[x_max,y_max]]
+        if data[1] > 10:
+            print (data[0][0][0]+data[0][1][0])/2 , "\t" , (data[0][0][1]+data[0][1][1])/2 , "\t" , data[1]
         path = []
         box = data[0]
         # (x_min, y_min) --> (x_min, y_max) --> (x_max, y_max) --> (x_max, y_min) --> (x_min, y_min)
@@ -69,7 +79,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, filename='../../log/debug.log')
 
     # dataset_list = ['yelp', 'foursquare', 'gowallasf', 'gowallala']
-    dataset_list = ['gowalla_hawaii']
+    dataset_list = ['mediaq']
 
     for dataset in dataset_list:
         param = Params(1000)

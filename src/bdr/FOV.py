@@ -25,7 +25,7 @@ class FOV(object):
         self.lat = geojson.geometry.coordinates[1]
         self.lon = geojson.geometry.coordinates[0]
         self.compass = float(geojson.properties['theta_x'])
-        self.R = float(geojson.properties['r']) * 200
+        self.R = float(geojson.properties['r']) * 20
         self.alpha = float(geojson.properties['alpha'])
 
     def __init__(self, lat, lon, compass, R, alpha):
