@@ -110,7 +110,7 @@ class FOV(object):
         return mbr_to_cellids(self.mbr(), param)
 
     def to_str(self):
-        content = "\t".join(map(str, [self.lat, self.lon, self.compass, self.alpha, self.R]))
+        content = "\t".join(map(str, [self.lat, self.lon, "None", "None", "None", "None", "None", self.compass, "None", self.R, self.alpha, "None"]))
         if self.id:
             return str(self.id) + "\t" + content
         return content

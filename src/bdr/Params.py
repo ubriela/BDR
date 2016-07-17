@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "mediaq"
+    DATASET = "napa"
 
     NDATA = None
     NDIM = None
@@ -22,7 +22,8 @@ class Params(object):
     part_size = 8
     ANALYST_COUNT = 256
 
-    GRID_SIZE = 200
+    GRID_SIZE = 1700
+    TIME_SNAPSHOT = 10
 
     def __init__(self, seed, x_min = None, y_min = None, x_max = None, y_max = None):
         self.Seed = seed
@@ -47,6 +48,17 @@ class Params(object):
             self.y_min = -118.291716
             self.x_max = 34.025296
             self.y_max = -118.279826
+
+# https://en.wikipedia.org/wiki/2014_South_Napa_earthquake
+        if Params.DATASET == "napa":
+            self.dataset = ""
+            self.datadir = '../../dataset/napa/snapshots/'
+            self.resdir = '../../output/napa/'
+            self.x_min = 37.41665 # 37.3822
+            self.y_min = -123.31665 # -123.5617
+            self.x_max = 39.00835 # 39.0488
+            self.y_max = -121.29995 # -121.0617
+            self.urgency_value = '../../dataset/napa/urgency_total.csv'
 
         if Params.DATASET == "pbs":
             self.dataset = '../../dataset/mediaq_pbs/pbs_cleaned.dat'

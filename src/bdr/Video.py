@@ -29,6 +29,9 @@ class Video(object):
     def __init__(self, fovs):
         self.fovs = fovs
 
+    """
+    only get the first fov_count number of fovs
+    """
     def get_fovs(self):
         return self.fovs[0:self.fov_count]
 
@@ -57,7 +60,7 @@ class Video(object):
         return sum([fov.area() for fov in self.fovs])
 
     def to_str(self):
-        return str(self.id) + "\n" + "\n".join(fov.to_str() for fov in self.fovs)
+        return "\n".join("None" + '\t' + str(self.id) + '\t' + str(i) + '\t' + self.fovs[i].to_str() for i in range(len(self.fovs))) + "\n"
 
 
 from figures import SIZE, GRAY, BLUE

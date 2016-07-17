@@ -27,14 +27,17 @@ def read_data(file):
     fovs = []
     idx = 0
     videos = []
+    video_id = 0
     for vid in data[1]:
+        # print vid, prev_vid
         if vid == prev_vid:
             fov = FOV(data[3][idx],data[4][idx],data[10][idx],data[12][idx],data[13][idx])
             fovs.append(fov)
         else:
             # new video
             v = Video(fovs)
-            v.id = vid
+            v.id = video_id
+            video_id = video_id + 1
             videos.append(v)
             # print v.to_str()
 
