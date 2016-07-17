@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "napa"
+    DATASET = "mediaq"
 
     NDATA = None
     NDIM = None
@@ -60,13 +60,6 @@ class Params(object):
             self.y_max = -121.29995 # -121.0617
             self.urgency_value = '../../dataset/napa/urgency_total.csv'
 
-        if Params.DATASET == "pbs":
-            self.dataset = '../../dataset/mediaq_pbs/pbs_cleaned.dat'
-            self.resdir = '../../output/pbs/'
-            self.x_min = 1.286748
-            self.y_min = -118.293334
-            self.x_max = 34.032604
-            self.y_max = 103.866564
         if Params.DATASET == "gsv":
             self.dataset = '../../dataset/gsv/gsv.txt'
             self.resdir = '../../output/gsv/'
@@ -77,10 +70,10 @@ class Params(object):
         if Params.DATASET == "mediaq":
             self.dataset = '../../dataset/mediaq/mediaq_fovs.dat'
             self.resdir = '../../output/mediaq/'
-            self.x_min = -180
-            self.y_min = -90
-            self.x_max = 180
-            self.y_max = 90
+            self.x_min = 33.976572
+            self.y_min = -118.339477
+            self.x_max = 34.066572
+            self.y_max = -118.229477
         if Params.DATASET == "gowalla_hawaii":
             Params.resdir = '../../output/gowalla_hawaii/'
             Params.dataset = '../../dataset/gowalla_hawaii.dat'

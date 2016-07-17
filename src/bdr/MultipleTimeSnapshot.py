@@ -199,7 +199,7 @@ def eval_optimization(param):
     for count in fov_count:
         updated_unit_cells = {}
         total_va = 0
-        for time in range(20):
+        for time in range(param.TIME_SNAPSHOT):
             total_va = total_va + optimization(param,count,seed,time)
         print total_va
 

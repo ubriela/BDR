@@ -236,8 +236,8 @@ if __name__ == '__main__':
     # eval_partition(data, param)
 
     eval_analyst(data, param)
-    # eval_bandwidth(data, param)
-    # eval_skewness(data, param)
+    eval_bandwidth(data, param)
+    eval_skewness(data, param)
 
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")
