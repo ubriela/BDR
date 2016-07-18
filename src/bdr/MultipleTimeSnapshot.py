@@ -53,7 +53,8 @@ def data_readin2(p):
 
 def parse_urgency_map(file='../../dataset/napa/urgency_total.csv'):
     data = np.genfromtxt(file, unpack=True, delimiter=',')
-    # print data.shape[0], data.shape[1]
+    print data.shape[0], data.shape[1]
+    print np.average(data), np.amax(data), np.std(data)
     return data
 
 urgency_map= parse_urgency_map()
@@ -194,13 +195,15 @@ def optimization(param,fov_count,seed,timesnapshot):
 def eval_optimization(param):
 
     seed = 1000
-    fov_count = [5,10,15,20,25,30]
+    fov_count = [2,4,8,16,32]
     global updated_unit_cells
     for count in fov_count:
         updated_unit_cells = {}
         total_va = 0
         for time in range(param.TIME_SNAPSHOT):
-            total_va = total_va + optimization(param,count,seed,time)
+            current_va = optimization(param,count,seed,time)
+            total_va = total_va + current_va
+            print current_va
         print total_va
 
 

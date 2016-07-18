@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "mediaq"
+    DATASET = "napa"
 
     NDATA = None
     NDIM = None
@@ -23,7 +23,7 @@ class Params(object):
     ANALYST_COUNT = 256
 
     GRID_SIZE = 1700
-    TIME_SNAPSHOT = 10
+    TIME_SNAPSHOT = 6
 
     def __init__(self, seed, x_min = None, y_min = None, x_max = None, y_max = None):
         self.Seed = seed

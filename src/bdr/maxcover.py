@@ -30,6 +30,8 @@ def max_cover(universe, all_sets, budget, weights):
         if max_uncovered_weight == 0:
             break
 
+        # print max_uncovered_weight
+
         if best_setid > -1:
             covered_sets.add(best_setid)
             # universe.difference_update(all_sets.get(best_setid))

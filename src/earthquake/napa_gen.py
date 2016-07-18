@@ -1,6 +1,7 @@
 __author__ = 'ubriela'
 
 import sys
+import numpy as np
 
 from cdi_parser import cdi_parse
 from nresp_parser import nresp_parse
@@ -30,7 +31,7 @@ for x in cdi_arr:
 
     # print nvideo
 
-    # select nvideo random videos in the corresponding grid
+    # select nvideo videos in the corresponding grid
     nvideo_count = 0
     for v in videos:
         latv, lngv = v.fovs[0].lat, v.fovs[0].lon
@@ -40,26 +41,29 @@ for x in cdi_arr:
             # if nvideo_count == nvideo: # enough data point
             #     break
 
+np.random.shuffle(filtered_videos)
+
 t_nresp = sum(nresp_arr)
 t = 0
 vid = 0
 for x in nresp_arr:
     fv = int(round((x + 0.0)/t_nresp * len(filtered_videos)))
-    str_videos = ""
-    for i in range(fv):
-        # print filtered_videos[vid].to_str()
-        str_videos = str_videos + filtered_videos[vid].to_str()
-        vid = vid + 1
-
-        if vid >= len(filtered_videos):
-            break
-
-    # output into a file
-    text_file = open("../../dataset/napa/snapshots/" + str(t) + ".txt", "w")
-    text_file.write(str_videos)
-    text_file.close()
-
-    t = t + 1
+    print fv
+    # str_videos = ""
+    # for i in range(fv):
+    #     # print filtered_videos[vid].to_str()
+    #     str_videos = str_videos + filtered_videos[vid].to_str()
+    #     vid = vid + 1
+    #
+    #     if vid >= len(filtered_videos):
+    #         break
+    #
+    # # output into a file
+    # text_file = open("../../dataset/napa/snapshots/" + str(t) + ".txt", "w")
+    # text_file.write(str_videos)
+    # text_file.close()
+    #
+    # t = t + 1
 
 
 # for v in filtered_videos:

@@ -67,13 +67,16 @@ def optimization(tree, fov_count, seed, param):
         # else:
         #     print "not a leaf node", v.location()
 
-    universe = Set([i for i in range(param.GRID_SIZE*param.GRID_SIZE)])
     all_sets = {}
     for i in range(len(fovs)):
-        all_sets[i] = fovs[i].cellids(param)
+        all_sets[i] = Set(fovs[i].cellids(param))
+
+    universe = Set([])
+    for s in all_sets.values():
+        universe = universe | s
 
     weights = {}
-    count = 0
+    # count = 0
     last_weight = 0
     for item in universe:
         coord = cell_coord(item, param)
@@ -87,7 +90,7 @@ def optimization(tree, fov_count, seed, param):
             last_weight = weights[item]
         else:
             weights[item] = last_weight
-            count = count + 1
+            # count = count + 1
 
     # print count
     # print universe
@@ -95,10 +98,10 @@ def optimization(tree, fov_count, seed, param):
     # print fov_count
     # print weights
 
-    start = time.time()
+    # start = time.time()
 
     covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, fov_count, weights)
-    print "time ", time.time() - start
+    # print "time ", time.time() - start
 
     print covered_weight
     return covered_weight
@@ -232,7 +235,7 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
-    print data
+    # print data
     # eval_partition(data, param)
 
     eval_analyst(data, param)

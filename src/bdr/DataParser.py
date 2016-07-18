@@ -39,6 +39,7 @@ def read_data(file):
             v.id = video_id
             video_id = video_id + 1
             videos.append(v)
+            # print v.fovs[0].lat, '\t', v.fovs[0].lon
             # print v.to_str()
 
             # new fovs
@@ -51,6 +52,8 @@ def read_data(file):
 
     return videos
 
+# read_data('../../dataset/mediaq/mediaq_fovs.txt_filtered')
+
 """
 lat 0
 lon 1
@@ -58,7 +61,7 @@ dir 2
 """
 def read_image_data(file):
     data = np.genfromtxt(file, unpack=True)
-
+    # print data
     idx = 0
     fovs = []
     for i in range(0,data.shape[1]):
@@ -97,6 +100,38 @@ def read_shakemap_xml(url='http://earthquake.usgs.gov/earthquakes/shakemap/globa
                 if len(values) == 11 and float(values[4]) > 7:
                     pass
 
+import re
+
+def filter_data(file, x_min = 33.976572, y_min = -118.339477, x_max = 34.066572, y_max = -118.229477):
+    resultStr = ""
+    with open(file) as f:
+        lines = f.readlines()
+        for l in lines:
+            s = l.split()
+            lat, lng = float(s[0]), float(s[1])
+            if x_min <= lat <= x_max and y_min <= lng <= y_max:
+                resultStr = resultStr + l
+
+    text_file = open(file + "_filtered", "w")
+    text_file.write(resultStr)
+    text_file.close()
+
+    resultStr = ""
+    fovs_file = re.sub(r'\.dat$', '', file) + ".txt"
+    with open(fovs_file) as f:
+        lines = f.readlines()
+        for l in lines:
+            s = l.split()
+            lat, lng = float(s[3]), float(s[4])
+            if x_min <= lat <= x_max and y_min <= lng <= y_max:
+                resultStr = resultStr + l
+
+    text_file = open(fovs_file + "_filtered", "w")
+    text_file.write(resultStr)
+    text_file.close()
+
+
+# filter_data('../../dataset/mediaq/mediaq_fovs.dat')
 
 if False:
 

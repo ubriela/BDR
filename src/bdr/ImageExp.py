@@ -52,10 +52,13 @@ def optimization(tree, fov_count, seed, param):
     np.random.seed(seed)
     fovs = read_image_data(param.dataset)
 
-    universe = Set([i for i in range(param.GRID_SIZE*param.GRID_SIZE)])
     all_sets = {}
     for i in range(len(fovs)):
-        all_sets[i] = fovs[i].cellids(param)
+        all_sets[i] = Set(fovs[i].cellids(param))
+
+    universe = Set([])
+    for s in all_sets.values():
+        universe = universe | s
 
     weights = {}
     count = 0
@@ -79,10 +82,10 @@ def optimization(tree, fov_count, seed, param):
     # print fov_count
     # print weights
 
-    start = time.time()
+    # start = time.time()
 
     covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, fov_count, weights)
-    print "time ", time.time() - start
+    # print "time ", time.time() - start
 
     print covered_weight
     return covered_weight
@@ -218,7 +221,7 @@ if __name__ == '__main__':
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
     # eval_partition(data, param)
-    eval_partition(data, param)
+    # eval_partition(data, param)
     eval_analyst(data, param)
     eval_bandwidth(data, param)
     eval_skewness(data, param)
