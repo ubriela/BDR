@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "napa"
+    DATASET = "gau"
 
     NDATA = None
     NDIM = None
@@ -20,7 +20,7 @@ class Params(object):
     # ANALYST_COUNT = 36
 
     part_size = 8
-    ANALYST_COUNT = 256
+    ANALYST_COUNT = 36
 
     GRID_SIZE = 1700
     TIME_SNAPSHOT = 6

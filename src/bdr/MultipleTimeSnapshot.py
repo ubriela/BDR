@@ -78,6 +78,7 @@ this set <unit cell id, visual awareness> contains the selected unit cells
 and their updated values of visual awareness.
 """
 updated_unit_cells = {}
+updated_unit_cells_count = {}
 
 """
 universe = Set([1,2,3,4,5])
@@ -172,10 +173,12 @@ def optimization(param,fov_count,seed,timesnapshot):
             # compute visual awareness
             coord = cell_coord(item, param)
             urgency = urgency_value(coord[0], coord[1])
-            updated_unit_cells[item] = weights[item] = urgency * cell_ratio / 2
+            updated_unit_cells[item] = weights[item] = urgency * cell_ratio
+            updated_unit_cells_count[item] = 1
         else:
             # update the value of the element
             weights[item] = updated_unit_cells[item]
+            updated_unit_cells_count[item] = updated_unit_cells_count[item] + 1
 
     # print len(universe), universe
     # print len(all_sets), all_sets
@@ -188,7 +191,7 @@ def optimization(param,fov_count,seed,timesnapshot):
 
     # reduce VA value of the cells in covered_items by half
     for item in covered_items:
-        updated_unit_cells[item] = updated_unit_cells[item] / 2
+        updated_unit_cells[item] = updated_unit_cells[item]#/updated_unit_cells_count[item]
 
     return covered_weight
 

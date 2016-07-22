@@ -43,9 +43,12 @@ class Video(object):
         else:
             print None
 
+    """
+    squared km
+    """
     def area(self):
         if self.fovs is not None:
-            return self.c_union().area / (1000000*Params.ONE_KM*Params.ONE_KM)
+            return self.c_union().area / (Params.ONE_KM*Params.ONE_KM)
         else:
             print 'No FOV!'
             return 0

@@ -104,6 +104,10 @@ if __name__ == '__main__':
             patch = mpatches.PathPatch(path, facecolor='white', alpha=weight)
             ax.add_patch(patch)
 
+            ax.xaxis.set_visible(False)
+            ax.yaxis.set_visible(False)
+            ax.axis('off')
+
             # plot control points and connecting lines
             x, y = zip(*path.vertices)
             # ax.imshow(img)
@@ -111,4 +115,4 @@ if __name__ == '__main__':
 
         ax.grid()
         # ax.axis('equal')
-        savefig('../../dataset/graph/' + param.DATASET + '.jpg', format='jpeg', dpi=400)
+        savefig('../../dataset/graph/' + param.DATASET + '.eps', format='eps', dpi=400)

@@ -108,7 +108,7 @@ def eval_analyst(data, param):
     exp_name = "eval_analyst"
 
     analyst = [4,5,6,7,8]
-    fov_count = 100    # fixed
+    fov_count = 20    # fixed
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
     res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
@@ -223,8 +223,8 @@ if __name__ == '__main__':
     # eval_partition(data, param)
     # eval_partition(data, param)
     eval_analyst(data, param)
-    eval_bandwidth(data, param)
-    eval_skewness(data, param)
+    # eval_bandwidth(data, param)
+    # eval_skewness(data, param)
 
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")

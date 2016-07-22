@@ -48,15 +48,21 @@ class Tree(object):
             count = curr.n_data.shape[1]
         return count
 
+    def valid_work_cell(self, rect):
+        # print rect[1][0] - rect[0][0], rect[1][1] - rect[0][1]
+        return rect[1][0] - rect[0][0] < 0.000457/2 or rect[1][1] - rect[0][1] < 0.0005865/2
+
     # this function is used in BDR paper
     def testLeaf_bdr(self, curr):
         """ test whether a node should be a leaf node """
         if (curr.n_data is None or curr.n_data.shape[1] == 0) or \
             self.cell_count >= self.param.ANALYST_COUNT or \
                 (curr.n_count <= self.param.minPartSize) or \
-                    rect_area(curr.n_box) < 0.01:
+                    self.valid_work_cell(curr.n_box):
+                                # rect_area(curr.n_box) < 0.01:
             return True
         return False
+
 
     def testLeaf(self, curr):
         """ test whether a node should be a leaf node """
@@ -66,10 +72,6 @@ class Tree(object):
                     rect_area(curr.n_box) < 0.0004:
             return True
         return False
-
-    def cell_setLeaf(self, curr):
-        """ will be overrided in kd_cell """
-        return
 
     def buildIndex(self):
         """ Function to build the tree structure, fanout = 4 by default for spatial (2D) data """
@@ -89,10 +91,9 @@ class Tree(object):
             if curr.n_depth > max_depth:
                 max_depth = curr.n_depth
 
-            if self.testLeaf(curr) is True:  # ## curr is a leaf node
+            if self.testLeaf_bdr(curr) is True:  # ## curr is a leaf node
                 curr.n_count = self.getCount(curr)
                 curr.n_isLeaf = True
-                self.cell_setLeaf(curr)
 
             else:  # ## curr needs to split
                 tmp = self.getCoordinates(curr)
@@ -116,6 +117,7 @@ class Tree(object):
                 curr.n_data = None  # ## do not need the data points coordinates now
                 curr.nw, curr.ne, curr.sw, curr.se = nw_node, ne_node, sw_node, se_node
                 self.cell_count += 3
+                # print self.cell_count
         # end of while
 
         logging.debug("number of leaves: %d" % self.cell_count)

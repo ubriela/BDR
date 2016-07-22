@@ -31,7 +31,7 @@ seed_list = [2172]
 
 method_list = None
 exp_name = None
-dataset_identifier = "_mediaq"
+dataset_identifier = "_gau"
 
 def sample_data(data, p):
     # print data.shape
@@ -129,7 +129,7 @@ def getLeafNode(tree, type):
 populations_data = None
 def compute_urgency(node):
     if Params.URGENCY_RANDOM == True:
-        x = random.randint(0,5)
+        x = random.randint(0,10)
         # node.urgency = 3
         return
     global populations_data
@@ -165,9 +165,9 @@ def optimization(tree, bandwidth, seed, param):
 
             # compute urgency of leaf node
             compute_urgency(leaf_node)
-            ratio = min(1, 1000000 * v.area() / rect_area(leaf_node.n_box) / 6.25)
-            # print ratio
-            v.value = leaf_node.urgency * ratio
+            # ratio = 1000000 * v.area() / rect_area(leaf_node.n_box) / 6.25
+            # print v.area()
+            v.value = leaf_node.urgency * v.area()
             # print v.value
         # else:
         #     print "not a leaf node", v.location()
@@ -243,7 +243,7 @@ def eval_analyst(data, param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
-    analyst = [2,3,4,5,6,7,8]
+    analyst = [4,5,6,7,8]
     bandwidth = 20    # fixed
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
