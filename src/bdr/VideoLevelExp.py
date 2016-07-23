@@ -148,35 +148,29 @@ def compute_urgency(node):
         populations = populations[:, x:y + 1]
     node.urgency = populations.shape[1]
 
-def optimization(tree, bandwidth, seed, param):
-    np.random.seed(seed)
+def optimization(bandwidth, param):
+    np.random.seed(param.seed)
     fovs_file = re.sub(r'\.dat$', '', param.dataset) + ".txt"
     videos = read_data(fovs_file)
 
     # update video value
     for v in videos:
-        leaf_node = tree.leafCover(v.location())
-        if leaf_node:
-            v.size = np.random.zipf(param.ZIPFIAN_SKEW)
-            if v.size > 20:
-                v.size = 20
-            v.fov_count = int(v.size)
-            # size = int(np.random.uniform(1,10))
+        v.size = np.random.zipf(param.ZIPFIAN_SKEW)
+        if v.size > 20:
+            v.size = 20
+        v.fov_count = int(v.size)
+        # size = int(np.random.uniform(1,10))
 
-            # compute urgency of leaf node
-            compute_urgency(leaf_node)
-            # ratio = 1000000 * v.area() / rect_area(leaf_node.n_box) / 6.25
-            # print v.area()
-            v.value = leaf_node.urgency * v.area()
-            # print v.value
-        # else:
-        #     print "not a leaf node", v.location()
+        # print v.area()
+        v.value = random.randint(0,10) * v.area()
+        # print v.value
 
     weights = [v.size for v in videos]
     values  = [v.value for v in videos]
     # print weights
     # print values
     total_value = zeroOneKnapsack(values,weights,bandwidth)
+    # for each work cells, compute the amount of videos an analyst can handle and their visual awareness
 
     print "\n if my knapsack can hold %d bandwidth, i can get %f profit." % (bandwidth,total_value[0])
     print "\tby taking item(s): ",
@@ -184,7 +178,7 @@ def optimization(tree, bandwidth, seed, param):
         if (total_value[1][i] != 0):
             print i+1,
 
-    return total_value
+    return videos, total_value
 
 def eval_partition(data, param):
     # tree = Grid_standard(data, param)
@@ -251,6 +245,14 @@ def eval_analyst(data, param):
 
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
+
+        # upload best videos
+        videos, result = optimization(bandwidth, param)
+        optimal_value = [0]
+
+        # locations of the uploaded videos
+        uploaded_videos = [videos[i] for i in result[1] if result[1][i] != 0]
+
         for i in range(len(analyst)):
             param.part_size = analyst[i]
             param.ANALYST_COUNT = analyst[i] * analyst[i]
@@ -264,7 +266,11 @@ def eval_analyst(data, param):
                 else:
                     logging.error('No such index structure!')
                     sys.exit(1)
+
                 tree.buildIndex()
+
+                # each analyst can handle an amount of work
+                threshold = (bandwidth + 0.0)/ param.ANALYST_COUNT
 
                 answer = optimization(tree, bandwidth, seed_list[j], param)
                 res_cube_value[i, j, k] = answer[0]
