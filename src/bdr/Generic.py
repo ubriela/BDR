@@ -80,6 +80,7 @@ class Generic(object):
                     curr.n_isLeaf = True
                     curr.children = []
                     continue  # if the first level cell is leaf node
+                print len(n_data_arr)
                 for i in range(len(n_data_arr)):
                     node = Node()
                     if curr.n_depth % self.param.NDIM == 0:  # split by x coord
@@ -94,7 +95,6 @@ class Generic(object):
                     node.n_count = self.getCount(node)
                     curr.children.append(node)
                     queue.append(node)
-
 
                 curr.n_data = None  # ## do not need the data points coordinates now
         # end of while

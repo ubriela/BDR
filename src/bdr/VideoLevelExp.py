@@ -25,13 +25,14 @@ sys.path.append('../plot/code')
 
 from Utils import rect_area,zipf_pmf
 # from draw_workcell import getLeafNode
+from Utils import is_rect_cover
 
-seed_list = [2172]
-# seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
+# seed_list = [2172]
+seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
 method_list = None
 exp_name = None
-dataset_identifier = "_gau"
+dataset_identifier = "_uni"
 
 def sample_data(data, p):
     # print data.shape
@@ -126,6 +127,7 @@ def getLeafNode(tree, type):
 
     return leaf_boxes
 
+
 populations_data = None
 def compute_urgency(node):
     if Params.URGENCY_RANDOM == True:
@@ -148,7 +150,7 @@ def compute_urgency(node):
         populations = populations[:, x:y + 1]
     node.urgency = populations.shape[1]
 
-def optimization(bandwidth, param):
+def gen_videos(param):
     np.random.seed(param.seed)
     fovs_file = re.sub(r'\.dat$', '', param.dataset) + ".txt"
     videos = read_data(fovs_file)
@@ -156,8 +158,8 @@ def optimization(bandwidth, param):
     # update video value
     for v in videos:
         v.size = np.random.zipf(param.ZIPFIAN_SKEW)
-        if v.size > 20:
-            v.size = 20
+        if v.size > 10:
+            v.size = 10
         v.fov_count = int(v.size)
         # size = int(np.random.uniform(1,10))
 
@@ -165,20 +167,7 @@ def optimization(bandwidth, param):
         v.value = random.randint(0,10) * v.area()
         # print v.value
 
-    weights = [v.size for v in videos]
-    values  = [v.value for v in videos]
-    # print weights
-    # print values
-    total_value = zeroOneKnapsack(values,weights,bandwidth)
-    # for each work cells, compute the amount of videos an analyst can handle and their visual awareness
-
-    print "\n if my knapsack can hold %d bandwidth, i can get %f profit." % (bandwidth,total_value[0])
-    print "\tby taking item(s): ",
-    for i in range(len(total_value[1])):
-        if (total_value[1][i] != 0):
-            print i+1,
-
-    return videos, total_value
+    return videos
 
 def eval_partition(data, param):
     # tree = Grid_standard(data, param)
@@ -233,84 +222,93 @@ def eval_workload(data, param):
     np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
 
 
-def eval_analyst(data, param):
+def eval_analyst(param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
     analyst = [4,5,6,7,8]
-    bandwidth = 20    # fixed
+    # each analyst can handle an amount of work
+    analyst_capacity = 3
+    # print threshold
+
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
-    res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
+    res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list) + 1))
 
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
+        videos = gen_videos(param)  # generate videos given a seed
 
-        # upload best videos
-        videos, result = optimization(bandwidth, param)
-        optimal_value = [0]
+        for k in range(len(method_list)):
+            # all videos
+            locs = np.zeros((2, len(videos)))
+            for l in range(len(videos)):
+                locs[0][l], locs[1][l] = videos[l].fovs[0].lat, videos[l].fovs[0].lon
 
-        # locations of the uploaded videos
-        uploaded_videos = [videos[i] for i in result[1] if result[1][i] != 0]
+            for i in range(len(analyst)):
+                param.part_size = analyst[i]
+                param.ANALYST_COUNT = analyst[i] * analyst[i]
+                bandwidth = param.ANALYST_COUNT * analyst_capacity
 
-        for i in range(len(analyst)):
-            param.part_size = analyst[i]
-            param.ANALYST_COUNT = analyst[i] * analyst[i]
-            for k in range(len(method_list)):
-                if method_list[k] == 'grid_standard':
-                    tree = Grid_standard(data, param)
+                # upload best videos
+                weights = [v.size for v in videos]
+                values = [v.value for v in videos]
+
+                optimal_va = 0
+
+                if method_list[k] == 'grid_standard': # if grid --> partition first, select later
+                    tree = Grid_standard(locs, param)
                 elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(data, param)
+                    tree = Quad_standard(locs, param)
                 elif method_list[k] == 'kd_standard':
-                    tree = Kd_standard(data, param)
+                    result = zeroOneKnapsack(values, weights, bandwidth)
+                    optimal_va = result[0]
+
+                    # locations of the uploaded videos
+                    uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
+
+                    uploaded_locs = np.zeros((2, len(uploaded_videos)))
+                    for l in range(len(uploaded_videos)):
+                        uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
+                                                                   uploaded_videos[l].fovs[0].lon
+
+                    tree = Kd_standard(uploaded_locs, param)
                 else:
                     logging.error('No such index structure!')
                     sys.exit(1)
 
                 tree.buildIndex()
+                total_value = 0
 
-                # each analyst can handle an amount of work
-                threshold = (bandwidth + 0.0)/ param.ANALYST_COUNT
-
-                answer = optimization(tree, bandwidth, seed_list[j], param)
-                res_cube_value[i, j, k] = answer[0]
-
-    res_value_summary = np.average(res_cube_value, axis=1)
-    np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
-
-def eval_bandwidth(data, param):
-    logging.info("eval_bandwidth")
-    exp_name = "eval_bandwidth"
-
-    analyst = 6
-    param.part_size = analyst
-    param.ANALYST_COUNT = analyst * analyst
-
-    bandwidth = [10,15,20,25,30]
-    method_list = ['grid_standard', 'quad_standard', 'kd_standard']
-
-    res_cube_value = np.zeros((len(bandwidth), len(seed_list), len(method_list)))
-
-    for j in range(len(seed_list)):
-        param.seed = seed_list[j]
-        for i in range(len(bandwidth)):
-            for k in range(len(method_list)):
-                if method_list[k] == 'grid_standard':
-                    tree = Grid_standard(data, param)
-                elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(data, param)
-                elif method_list[k] == 'kd_standard':
-                    tree = Kd_standard(data, param)
+                # get leaf nodes (work cells)
+                if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
+                    leaf_nodes = getLeafNode(tree, 2)
                 else:
-                    logging.error('No such index structure!')
-                    sys.exit(1)
-                tree.buildIndex()
+                    leaf_nodes = getLeafNode(tree, 1)
 
-                answer = optimization(tree, bandwidth[i], seed_list[j], param)
-                res_cube_value[i, j, k] = answer[0]
+                # each analyst chooses the best videos in their assigned work cells
+                print method_list[k], len(leaf_nodes)
+                for (n_box, count) in leaf_nodes:
+                    if count > 0:
+                        leaf_values, leaf_weights = [], []
+                        for l in range(len(videos)):
+                            loc = [videos[l].fovs[0].lat, videos[l].fovs[0].lon]
+                            if is_rect_cover(n_box, loc):
+                                leaf_values.append(values[l])
+                                leaf_weights.append(weights[l])
+
+                        if len(leaf_values) > 0:
+                            # print leaf_values
+                            # print leaf_weights
+                            # print threshold
+                            val = zeroOneKnapsack(leaf_values, leaf_weights, analyst_capacity)
+                            total_value = total_value + val[0]
+
+                res_cube_value[i, j, k] = total_value
+                res_cube_value[i, j, len(method_list)] = optimal_va
 
     res_value_summary = np.average(res_cube_value, axis=1)
-    np.savetxt(param.resdir + exp_name + dataset_identifier, res_value_summary, fmt='%.4f\t')
+    np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
 
 """
@@ -406,7 +404,7 @@ if __name__ == '__main__':
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
     # eval_workload(data, param)
-    eval_analyst(data, param)
+    eval_analyst(param)
     # eval_bandwidth(data, param)
     # eval_skewness(data, param)
     # eval_runtime(data, param)

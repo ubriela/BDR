@@ -27,6 +27,7 @@ class Grid_standard(Grid):
         dimP = curr.n_depth % self.param.NDIM  # split dimension
 
         split_arr = self.getEqualSplit(self.param.m, _box[0, dimP], _box[1, dimP])
+        # print self.param.m
 
         # get data points in these partitions
         n_data_arr = [None for _ in range(self.param.m)]
@@ -46,5 +47,5 @@ class Grid_standard(Grid):
                 else:
                     n_data = _data[:, posP1:posP2]
                 n_data_arr[i] = n_data
-
+        print len(split_arr), len(n_data_arr)
         return split_arr, n_data_arr
