@@ -157,9 +157,9 @@ def eval_analyst(param):
                     tree = Quad_standard(locs, param)
                 elif method_list[k] == 'kd_standard':
                     # upload best fovs
-                    # print len(fovs)
+                    print len(fovs)
                     all_sets, universe, weights = fovs_info(fovs)
-                    # print len(all_sets), len(universe), len(weights)
+                    print len(all_sets), len(universe), len(weights)
                     covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, bandwidth, weights)
 
                     # locations of the uploaded fovs
@@ -176,8 +176,9 @@ def eval_analyst(param):
                     sys.exit(1)
 
                 tree.buildIndex()
-                all_values = []
 
+
+                all_values = []
                 # get leaf nodes (work cells)
                 if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
                     leaf_nodes = getLeafNode(tree, 2)
@@ -196,6 +197,8 @@ def eval_analyst(param):
                             leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, bandwidth, leaf_weights)
                             all_values.append(leaf_covered_weight)
 
+
+                print len(all_values)
                 heap = heapsort(all_values)
                 for h in range(len(all_values) - param.ANALYST_COUNT):
                     heapq.heappop(heap)
