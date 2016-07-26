@@ -47,5 +47,5 @@ class Grid_standard(Grid):
                 else:
                     n_data = _data[:, posP1:posP2]
                 n_data_arr[i] = n_data
-        print len(split_arr), len(n_data_arr)
+        # print len(split_arr), len(n_data_arr)
         return split_arr, n_data_arr

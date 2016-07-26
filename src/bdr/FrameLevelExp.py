@@ -5,10 +5,11 @@ import numpy as np
 import math
 import random
 import time
-
+from collections import deque
 from maxcover import max_cover
 
 from sets import Set
+import heapq
 
 # import multiprocessing as mult
 import sys
@@ -29,14 +30,30 @@ from VideoLevelExp import compute_urgency, data_readin
 sys.path.append('../plot/code')
 
 from Utils import rect_area,zipf_pmf
+from Utils import is_rect_cover
 
 seed_list = [2172]
 # seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
 method_list = None
 exp_name = None
-dataset_identifier = "_fov_mediaq"
+dataset_identifier = "_fov_gau"
 
+def gen_fovs(param):
+    np.random.seed(param.seed)
+    fovs_file = re.sub(r'\.dat$', '', param.dataset) + ".txt"
+    videos = read_data(fovs_file)
+
+    fovs = []
+    for v in videos:
+        v.size = np.random.zipf(param.ZIPFIAN_SKEW)
+        if v.size > 10:
+            v.size = 10
+        v.fov_count = int(v.size)
+        fovs = fovs + v.get_fovs()
+        # else:
+        #     print "not a leaf node", v.location()
+    return fovs
 
 """
 universe = Set([1,2,3,4,5])
@@ -50,23 +67,7 @@ budget = 1
 
 print max_cover(universe, all_sets, budget, weights)
 """
-def optimization(tree, fov_count, seed, param):
-    np.random.seed(seed)
-    fovs_file = re.sub(r'\.dat$', '', param.dataset) + ".txt"
-    videos = read_data(fovs_file)
-
-    fovs = []
-    for v in videos:
-        leaf_node = tree.leafCover(v.location())
-        if leaf_node:
-            v.size = np.random.zipf(param.ZIPFIAN_SKEW)
-            if v.size > 20:
-                v.size = 20
-            v.fov_count = int(v.size)
-            fovs = fovs + v.get_fovs()
-        # else:
-        #     print "not a leaf node", v.location()
-
+def fovs_info(fovs):
     all_sets = {}
     for i in range(len(fovs)):
         all_sets[i] = Set(fovs[i].cellids(param))
@@ -76,35 +77,12 @@ def optimization(tree, fov_count, seed, param):
         universe = universe | s
 
     weights = {}
-    # count = 0
-    last_weight = 0
+    boundary = np.array([[param.x_min, param.y_min],[param.x_max, param.y_max]])
+    unit_cell_area = rect_area(boundary)/(param.GRID_SIZE*param.GRID_SIZE)
     for item in universe:
-        coord = cell_coord(item, param)
-        # print coord
-        leaf_node = tree.leafCover(coord)
-        if leaf_node is not None:
-            compute_urgency(leaf_node)
-            boundary = np.array([[param.x_min, param.y_min],[param.x_max, param.y_max]])
-            coverage_ratio = min(1, rect_area(boundary)/(param.GRID_SIZE*param.GRID_SIZE*rect_area(leaf_node.n_box)))
-            weights[item] = leaf_node.urgency*coverage_ratio
-            last_weight = weights[item]
-        else:
-            weights[item] = last_weight
-            # count = count + 1
+        weights[item] = random.randint(0,10) * unit_cell_area
 
-    # print count
-    # print universe
-    # print all_sets
-    # print fov_count
-    # print weights
-
-    # start = time.time()
-
-    covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, fov_count, weights)
-    # print "time ", time.time() - start
-
-    print covered_weight
-    return covered_weight
+    return all_sets, universe, weights
 
 def eval_partition(data, param):
     # tree = Grid_standard(data, param)
@@ -117,38 +95,116 @@ def eval_partition(data, param):
 
     print optimization(tree, fov_count, seed, param)
 
+def getLeafNode(tree, type):
+    leaf_boxes = []
+    if type == 1:
+        for l1_child in tree.root.children:
+            # print len(tree.root.children)
+            if not l1_child.n_isLeaf and l1_child.children is not None:
+                # print len(l1_child.children)
+                for l2_child in l1_child.children:  # child1 is a first-level cell
+                    leaf_boxes.append((l2_child.n_box, l2_child.n_count))
+            # leaf_boxes.append((l1_child.n_box, l1_child.n_count))
+    elif type == 2:
+        queue = deque()
+        queue.append(tree.root)
+        while len(queue) > 0:
+            curr = queue.popleft()
+            if curr.n_isLeaf is False:
+                queue.append(curr.nw)
+                queue.append(curr.ne)
+                queue.append(curr.sw)
+                queue.append(curr.se)
+            else:
+                leaf_boxes.append((curr.n_box, curr.n_count))
+
+    return leaf_boxes
+
+def heapsort(iterable):
+    h = []
+    for value in iterable:
+        heapq.heappush(h, value)
+    return [heapq.heappop(h) for i in range(len(h))]
+
 # varying the number of analysts, measure the total visual awareness
-def eval_analyst(data, param):
+def eval_analyst(param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
     analyst = [4,5,6,7,8]
-    fov_count = 200    # fixed
+    analyst_capacity = 40
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
     res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
 
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
-        for i in range(len(analyst)):
-            param.part_size = analyst[i]
-            param.ANALYST_COUNT = analyst[i] * analyst[i]
-            for k in range(len(method_list)):
-                if method_list[k] == 'grid_standard':
-                    tree = Grid_standard(data, param)
+        fovs = gen_fovs(param)  # generate videos given a seed
+        for k in range(len(method_list)):
+            # all fovs' locations
+            locs = np.zeros((2, len(fovs)))
+            for l in range(len(fovs)):
+                locs[0][l], locs[1][l] = fovs[l].lat, fovs[l].lon
+
+            for i in range(len(analyst)):
+                param.part_size = analyst[i]
+                param.ANALYST_COUNT = analyst[i] * analyst[i]
+                bandwidth = param.ANALYST_COUNT * analyst_capacity
+
+                if method_list[k] == 'grid_standard': # if grid --> partition first, select later
+                    tree = Grid_standard(locs, param)
                 elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(data, param)
+                    tree = Quad_standard(locs, param)
                 elif method_list[k] == 'kd_standard':
-                    tree = Kd_standard(data, param)
+                    # upload best fovs
+                    # print len(fovs)
+                    all_sets, universe, weights = fovs_info(fovs)
+                    # print len(all_sets), len(universe), len(weights)
+                    covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, bandwidth, weights)
+
+                    # locations of the uploaded fovs
+                    uploaded_fovs = [fovs[idx] for idx in covered_sets]
+
+                    uploaded_locs = np.zeros((2, len(uploaded_fovs)))
+                    for l in range(len(uploaded_fovs)):
+                        uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_fovs[l].lat, \
+                                                                   uploaded_fovs[l].lon
+
+                    tree = Kd_standard(uploaded_locs, param)
                 else:
                     logging.error('No such index structure!')
                     sys.exit(1)
-                tree.buildIndex()
 
-                res_cube_value[i, j, k] = optimization(tree, fov_count, seed_list[j], param)
+                tree.buildIndex()
+                all_values = []
+
+                # get leaf nodes (work cells)
+                if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
+                    leaf_nodes = getLeafNode(tree, 2)
+                else:
+                    leaf_nodes = getLeafNode(tree, 1)
+
+                # each analyst chooses the best fovs in their assigned work cells
+                for (n_box, count) in leaf_nodes:
+                    if count > 0:
+                        leaf_fovs = []
+                        for fov in fovs:
+                            if is_rect_cover(n_box, [fov.lat, fov.lon]):
+                                leaf_fovs.append(fov)
+                        if len(leaf_fovs) > 0:
+                            leaf_all_sets, leaf_universe, leaf_weights = fovs_info(fovs)
+                            leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, bandwidth, leaf_weights)
+                            all_values.append(leaf_covered_weight)
+
+                heap = heapsort(all_values)
+                for h in range(len(all_values) - param.ANALYST_COUNT):
+                    heapq.heappop(heap)
+
+                res_cube_value[i, j, k] = sum(heap)
 
     res_value_summary = np.average(res_cube_value, axis=1)
     np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
+
 
 # varying the bandwidth constraint
 def eval_bandwidth(data, param):
@@ -238,9 +294,9 @@ if __name__ == '__main__':
     # print data
     # eval_partition(data, param)
 
-    eval_analyst(data, param)
-    eval_bandwidth(data, param)
-    eval_skewness(data, param)
+    eval_analyst(param)
+    # eval_bandwidth(data, param)
+    # eval_skewness(data, param)
 
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")

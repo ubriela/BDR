@@ -19,6 +19,7 @@ from Grid_standard import Grid_standard
 from Kd_standard import Kd_standard
 from Quad_standard import Quad_standard
 from knapsack import zeroOneKnapsack
+import heapq
 
 sys.path.append('../plot')
 sys.path.append('../plot/code')
@@ -108,10 +109,12 @@ def getLeafNode(tree, type):
     leaf_boxes = []
     if type == 1:
         for l1_child in tree.root.children:
+            # print len(tree.root.children)
             if not l1_child.n_isLeaf and l1_child.children is not None:
+                # print len(l1_child.children)
                 for l2_child in l1_child.children:  # child1 is a first-level cell
                     leaf_boxes.append((l2_child.n_box, l2_child.n_count))
-            leaf_boxes.append((l1_child.n_box, l1_child.n_count))
+            # leaf_boxes.append((l1_child.n_box, l1_child.n_count))
     elif type == 2:
         queue = deque()
         queue.append(tree.root)
@@ -169,58 +172,11 @@ def gen_videos(param):
 
     return videos
 
-def eval_partition(data, param):
-    # tree = Grid_standard(data, param)
-    # tree = Quad_standard(data, param)
-    tree = Kd_standard(data, param)
-    tree.buildIndex()
-
-    seed = 1000
-    bandwidth = 1000
-    answer = optimization(tree, bandwidth, seed, param)
-
-    print "\n if my knapsack can hold %d bandwidth, i can get %f profit." % (bandwidth,answer[0])
-    print "\tby taking item(s): ",
-    for i in range(len(answer[1])):
-        if (answer[1][i] != 0):
-            print i+1,
-
-def eval_workload(data, param):
-    logging.info("eval_workload")
-    exp_name = "eval_workload"
-
-    analyst = [4,5,6,7,8]
-    method_list = ['grid_standard', 'quad_standard', 'kd_standard']
-
-    res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
-
-    for j in range(len(seed_list)):
-        param.seed = seed_list[j]
-        for i in range(len(analyst)):
-            param.part_size = analyst[i]
-            param.ANALYST_COUNT = analyst[i] * analyst[i]
-            for k in range(len(method_list)):
-                if method_list[k] == 'grid_standard':
-                    tree = Grid_standard(data, param)
-                    tree.buildIndex()
-                    leaf_boxes = getLeafNode(tree, 1)
-                elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(data, param)
-                    tree.buildIndex()
-                    leaf_boxes = getLeafNode(tree, 2)
-                elif method_list[k] == 'kd_standard':
-                    tree = Kd_standard(data, param)
-                    tree.buildIndex()
-                    leaf_boxes = getLeafNode(tree, 2)
-                else:
-                    logging.error('No such index structure!')
-                    sys.exit(1)
-                workload_counts = [leaf[1] for leaf in leaf_boxes]
-                res_cube_value[i, j, k] = np.var(workload_counts)
-
-    res_value_summary = np.average(res_cube_value, axis=1)
-    np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
-
+def heapsort(iterable):
+    h = []
+    for value in iterable:
+        heapq.heappush(h, value)
+    return [heapq.heappop(h) for i in range(len(h))]
 
 def eval_analyst(param):
     logging.info("eval_analyst")
@@ -228,12 +184,12 @@ def eval_analyst(param):
 
     analyst = [4,5,6,7,8]
     # each analyst can handle an amount of work
-    analyst_capacity = 3
+    analyst_capacity = 4
     # print threshold
 
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
-    res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list) + 1))
+    res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
 
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
@@ -250,19 +206,17 @@ def eval_analyst(param):
                 param.ANALYST_COUNT = analyst[i] * analyst[i]
                 bandwidth = param.ANALYST_COUNT * analyst_capacity
 
-                # upload best videos
                 weights = [v.size for v in videos]
                 values = [v.value for v in videos]
-
-                optimal_va = 0
 
                 if method_list[k] == 'grid_standard': # if grid --> partition first, select later
                     tree = Grid_standard(locs, param)
                 elif method_list[k] == 'quad_standard':
                     tree = Quad_standard(locs, param)
                 elif method_list[k] == 'kd_standard':
+                    # upload best videos
                     result = zeroOneKnapsack(values, weights, bandwidth)
-                    optimal_va = result[0]
+                    # optimal_va = result[0]
 
                     # locations of the uploaded videos
                     uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
@@ -278,7 +232,7 @@ def eval_analyst(param):
                     sys.exit(1)
 
                 tree.buildIndex()
-                total_value = 0
+                all_values = []
 
                 # get leaf nodes (work cells)
                 if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
@@ -287,7 +241,7 @@ def eval_analyst(param):
                     leaf_nodes = getLeafNode(tree, 1)
 
                 # each analyst chooses the best videos in their assigned work cells
-                print method_list[k], len(leaf_nodes)
+                # print method_list[k], len(leaf_nodes)
                 for (n_box, count) in leaf_nodes:
                     if count > 0:
                         leaf_values, leaf_weights = [], []
@@ -302,66 +256,202 @@ def eval_analyst(param):
                             # print leaf_weights
                             # print threshold
                             val = zeroOneKnapsack(leaf_values, leaf_weights, analyst_capacity)
-                            total_value = total_value + val[0]
+                            all_values.append(val[0])
 
-                res_cube_value[i, j, k] = total_value
-                res_cube_value[i, j, len(method_list)] = optimal_va
+                heap = heapsort(all_values)
+                for h in range(len(all_values) - param.ANALYST_COUNT):
+                    heapq.heappop(heap)
+
+                res_cube_value[i, j, k] = sum(heap)
 
     res_value_summary = np.average(res_cube_value, axis=1)
     np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
 
-"""
-varying skewness of video size
-"""
-def eval_skewness(data, param):
+def eval_capacity(param):
+    logging.info("eval_capacity")
+    exp_name = "eval_capacity"
+
+    # each analyst can handle an amount of work
+    capacity = [2,3,4,5,6]
+    analyst = 6
+    # print threshold
+
+    method_list = ['grid_standard', 'quad_standard', 'kd_standard']
+
+    res_cube_value = np.zeros((len(capacity), len(seed_list), len(method_list)))
+
+    for j in range(len(seed_list)):
+        param.seed = seed_list[j]
+        videos = gen_videos(param)  # generate videos given a seed
+
+        for k in range(len(method_list)):
+            # all videos
+            locs = np.zeros((2, len(videos)))
+            for l in range(len(videos)):
+                locs[0][l], locs[1][l] = videos[l].fovs[0].lat, videos[l].fovs[0].lon
+
+            for i in range(len(capacity)):
+                param.part_size = analyst
+                param.ANALYST_COUNT = analyst * analyst
+                bandwidth = capacity[i] * param.ANALYST_COUNT
+
+                # upload best videos
+                weights = [v.size for v in videos]
+                values = [v.value for v in videos]
+
+
+                if method_list[k] == 'grid_standard': # if grid --> partition first, select later
+                    tree = Grid_standard(locs, param)
+                elif method_list[k] == 'quad_standard':
+                    tree = Quad_standard(locs, param)
+                elif method_list[k] == 'kd_standard':
+                    result = zeroOneKnapsack(values, weights, bandwidth)
+                    # optimal_va = result[0]
+
+                    # locations of the uploaded videos
+                    uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
+
+                    uploaded_locs = np.zeros((2, len(uploaded_videos)))
+                    for l in range(len(uploaded_videos)):
+                        uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
+                                                                   uploaded_videos[l].fovs[0].lon
+
+                    tree = Kd_standard(uploaded_locs, param)
+                else:
+                    logging.error('No such index structure!')
+                    sys.exit(1)
+
+                tree.buildIndex()
+                all_values = []
+
+                # get leaf nodes (work cells)
+                if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
+                    leaf_nodes = getLeafNode(tree, 2)
+                else:
+                    leaf_nodes = getLeafNode(tree, 1)
+
+                # each analyst chooses the best videos in their assigned work cells
+                # print method_list[k], len(leaf_nodes)
+                for (n_box, count) in leaf_nodes:
+                    if count > 0:
+                        leaf_values, leaf_weights = [], []
+                        for l in range(len(videos)):
+                            loc = [videos[l].fovs[0].lat, videos[l].fovs[0].lon]
+                            if is_rect_cover(n_box, loc):
+                                leaf_values.append(values[l])
+                                leaf_weights.append(weights[l])
+
+                        if len(leaf_values) > 0:
+                            val = zeroOneKnapsack(leaf_values, leaf_weights, capacity[i])
+                            all_values.append(val[0])
+
+                heap = heapsort(all_values)
+                for h in range(len(all_values) - param.ANALYST_COUNT):
+                    heapq.heappop(heap)
+
+                res_cube_value[i, j, k] = sum(heap)
+
+    res_value_summary = np.average(res_cube_value, axis=1)
+    np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
+
+
+def eval_skewness(param):
     logging.info("eval_skewness")
     exp_name = "eval_skewness"
 
     analyst = 6
+    analyst_capacity = 2
     param.part_size = analyst
     param.ANALYST_COUNT = analyst * analyst
-    bandwidth = 20    # fixed
+    bandwidth = analyst_capacity * param.ANALYST_COUNT
 
     skewness = [1.6,1.8,2.0,2.2,2.4]
+
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
     res_cube_value = np.zeros((len(skewness), len(seed_list), len(method_list)))
 
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
-        for i in range(len(skewness)):
-            param.ZIPFIAN_SKEW = skewness[i]
-            for k in range(len(method_list)):
-                if method_list[k] == 'grid_standard':
-                    tree = Grid_standard(data, param)
+        for k in range(len(method_list)):
+            for i in range(len(skewness)):
+                param.ZIPFIAN_SKEW = skewness[i]
+                videos = gen_videos(param)  # generate videos given a seed
+
+                # all videos
+                locs = np.zeros((2, len(videos)))
+                for l in range(len(videos)):
+                    locs[0][l], locs[1][l] = videos[l].fovs[0].lat, videos[l].fovs[0].lon
+
+                # upload best videos
+                weights = [v.size for v in videos]
+                values = [v.value for v in videos]
+
+
+                if method_list[k] == 'grid_standard': # if grid --> partition first, select later
+                    tree = Grid_standard(locs, param)
                 elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(data, param)
+                    tree = Quad_standard(locs, param)
                 elif method_list[k] == 'kd_standard':
-                    tree = Kd_standard(data, param)
+                    result = zeroOneKnapsack(values, weights, bandwidth)
+
+                    # locations of the uploaded videos
+                    uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
+
+                    uploaded_locs = np.zeros((2, len(uploaded_videos)))
+                    for l in range(len(uploaded_videos)):
+                        uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
+                                                                   uploaded_videos[l].fovs[0].lon
+
+                    tree = Kd_standard(uploaded_locs, param)
                 else:
                     logging.error('No such index structure!')
                     sys.exit(1)
-                tree.buildIndex()
 
-                answer = optimization(tree, bandwidth, seed_list[j], param)
-                res_cube_value[i, j, k] = answer[0]
+                tree.buildIndex()
+                all_values = []
+
+                # get leaf nodes (work cells)
+                if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
+                    leaf_nodes = getLeafNode(tree, 2)
+                else:
+                    leaf_nodes = getLeafNode(tree, 1)
+
+                # each analyst chooses the best videos in their assigned work cells
+                # print method_list[k], len(leaf_nodes)
+                for (n_box, count) in leaf_nodes:
+                    if count > 0:
+                        leaf_values, leaf_weights = [], []
+                        for l in range(len(videos)):
+                            loc = [videos[l].fovs[0].lat, videos[l].fovs[0].lon]
+                            if is_rect_cover(n_box, loc):
+                                leaf_values.append(values[l])
+                                leaf_weights.append(weights[l])
+
+                        if len(leaf_values) > 0:
+                            val = zeroOneKnapsack(leaf_values, leaf_weights, analyst_capacity)
+                            all_values.append(val[0])
+
+                heap = heapsort(all_values)
+                for h in range(len(all_values) - param.ANALYST_COUNT):
+                    heapq.heappop(heap)
+
+                res_cube_value[i, j, k] = sum(heap)
 
     res_value_summary = np.average(res_cube_value, axis=1)
-    np.savetxt(param.resdir + exp_name + dataset_identifier , res_value_summary, fmt='%.4f\t')
+    np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
-def eval_videos(data, param):
 
-    print ""
-
-def eval_runtime(data, param):
+def eval_runtime(param):
     logging.info("eval_runtime")
     exp_name = "eval_runtime"
 
     analyst = 6
+    analyst_capacity = 2
     param.part_size = analyst
     param.ANALYST_COUNT = analyst * analyst
-    bandwidth = 20    # fixed
+    bandwidth = analyst_capacity * param.ANALYST_COUNT
 
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
     res_cube_value = np.zeros((2, len(seed_list), len(method_list)))
@@ -369,27 +459,76 @@ def eval_runtime(data, param):
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
         for k in range(len(method_list)):
+
+            videos = gen_videos(param)  # generate videos given a seed
+
             start = time.time()
+
+            # all videos
+            locs = np.zeros((2, len(videos)))
+            for l in range(len(videos)):
+                locs[0][l], locs[1][l] = videos[l].fovs[0].lat, videos[l].fovs[0].lon
+
+            # upload best videos
+            weights = [v.size for v in videos]
+            values = [v.value for v in videos]
+
             if method_list[k] == 'grid_standard':
-                tree = Grid_standard(data, param)
+                tree = Grid_standard(locs, param)
             elif method_list[k] == 'quad_standard':
-                tree = Quad_standard(data, param)
+                tree = Quad_standard(locs, param)
             elif method_list[k] == 'kd_standard':
-                tree = Kd_standard(data, param)
+                result = zeroOneKnapsack(values, weights, bandwidth)
+
+                # locations of the uploaded videos
+                uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
+
+                uploaded_locs = np.zeros((2, len(uploaded_videos)))
+                for l in range(len(uploaded_videos)):
+                    uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
+                                                               uploaded_videos[l].fovs[0].lon
+
+                tree = Kd_standard(uploaded_locs, param)
             else:
                 logging.error('No such index structure!')
                 sys.exit(1)
             tree.buildIndex()
             partition_duration = time.time() - start
 
-            answer = optimization(tree, bandwidth, seed_list[j], param)
+            all_values = []
+
+            # get leaf nodes (work cells)
+            if method_list[k] == 'quad_standard' or method_list[k] == 'kd_standard':
+                leaf_nodes = getLeafNode(tree, 2)
+            else:
+                leaf_nodes = getLeafNode(tree, 1)
+
+            # each analyst chooses the best videos in their assigned work cells
+            # print method_list[k], len(leaf_nodes)
+            for (n_box, count) in leaf_nodes:
+                if count > 0:
+                    leaf_values, leaf_weights = [], []
+                    for l in range(len(videos)):
+                        loc = [videos[l].fovs[0].lat, videos[l].fovs[0].lon]
+                        if is_rect_cover(n_box, loc):
+                            leaf_values.append(values[l])
+                            leaf_weights.append(weights[l])
+
+                    if len(leaf_values) > 0:
+                        val = zeroOneKnapsack(leaf_values, leaf_weights, analyst_capacity)
+                        all_values.append(val[0])
+
+            heap = heapsort(all_values)
+            for h in range(len(all_values) - param.ANALYST_COUNT):
+                heapq.heappop(heap)
+
             optimization_duration = time.time() - start - partition_duration
 
             res_cube_value[0, j, k] = partition_duration
             res_cube_value[1, j, k] = optimization_duration
 
     res_value_summary = np.average(res_cube_value, axis=1)
-    np.savetxt(param.resdir + exp_name + dataset_identifier, res_value_summary, fmt='%.4f\t')
+    np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
 
 
@@ -403,11 +542,10 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
-    # eval_workload(data, param)
-    eval_analyst(param)
-    # eval_bandwidth(data, param)
-    # eval_skewness(data, param)
-    # eval_runtime(data, param)
+    # eval_analyst(param)
+    # eval_capacity(param)
+    # eval_skewness(param)
+    eval_runtime(param)
     # eval_partition(data, param)
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")

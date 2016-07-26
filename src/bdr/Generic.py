@@ -62,7 +62,7 @@ class Generic(object):
         self.root.n_count = self.getCount(self.root)
         queue = deque()
         queue.append(self.root)
-        nleaf = 0  # number of leaf node, for debug only
+        # nleaf = 0  # number of leaf node, for debug only
         # ## main loop
         while len(queue) > 0:
             curr = queue.popleft()
@@ -80,7 +80,7 @@ class Generic(object):
                     curr.n_isLeaf = True
                     curr.children = []
                     continue  # if the first level cell is leaf node
-                print len(n_data_arr)
+                # print len(n_data_arr)
                 for i in range(len(n_data_arr)):
                     node = Node()
                     if curr.n_depth % self.param.NDIM == 0:  # split by x coord
