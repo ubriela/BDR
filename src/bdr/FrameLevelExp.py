@@ -32,8 +32,16 @@ sys.path.append('../plot/code')
 from Utils import rect_area,zipf_pmf
 from Utils import is_rect_cover
 
-seed_list = [2172]
+seed_list = [9110]
 # seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
+
+analyst = [8]
+# each analyst can handle an amount of work
+analyst_capacity = 40
+
+# each analyst can handle an amount of work
+capacity = [4]
+analyst_count = 8
 
 method_list = None
 exp_name = None
@@ -96,14 +104,14 @@ def eval_partition(data, param):
     print optimization(tree, fov_count, seed, param)
 
 def getLeafNode(tree, type):
-    leaf_boxes = []
+    leaf_nodes = []
     if type == 1:
         for l1_child in tree.root.children:
             # print len(tree.root.children)
             if not l1_child.n_isLeaf and l1_child.children is not None:
                 # print len(l1_child.children)
                 for l2_child in l1_child.children:  # child1 is a first-level cell
-                    leaf_boxes.append((l2_child.n_box, l2_child.n_count))
+                    leaf_nodes.append(l2_child)
             # leaf_boxes.append((l1_child.n_box, l1_child.n_count))
     elif type == 2:
         queue = deque()
@@ -116,9 +124,9 @@ def getLeafNode(tree, type):
                 queue.append(curr.sw)
                 queue.append(curr.se)
             else:
-                leaf_boxes.append((curr.n_box, curr.n_count))
+                leaf_nodes.append(curr)
 
-    return leaf_boxes
+    return leaf_nodes
 
 def heapsort(iterable):
     h = []
@@ -131,16 +139,19 @@ def eval_analyst(param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
-    analyst = [4,5,6,7,8]
-    analyst_capacity = 40
-    method_list = ['grid_standard', 'quad_standard', 'kd_standard']
+    method_list = ['kd_standard']
 
     res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
 
     for j in range(len(seed_list)):
         param.seed = seed_list[j]
         fovs = gen_fovs(param)  # generate videos given a seed
+        h = {}
+        for fov in fovs:
+            h[str(fov.lat) + ";" + str(fov.lon)] = fov
+        # start = time.time()
         for k in range(len(method_list)):
+            print method_list[k]
             # all fovs' locations
             locs = np.zeros((2, len(fovs)))
             for l in range(len(fovs)):
@@ -156,27 +167,26 @@ def eval_analyst(param):
                 elif method_list[k] == 'quad_standard':
                     tree = Quad_standard(locs, param)
                 elif method_list[k] == 'kd_standard':
-                    # upload best fovs
-                    print len(fovs)
-                    all_sets, universe, weights = fovs_info(fovs)
-                    print len(all_sets), len(universe), len(weights)
-                    covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, bandwidth, weights)
-
-                    # locations of the uploaded fovs
-                    uploaded_fovs = [fovs[idx] for idx in covered_sets]
-
-                    uploaded_locs = np.zeros((2, len(uploaded_fovs)))
-                    for l in range(len(uploaded_fovs)):
-                        uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_fovs[l].lat, \
-                                                                   uploaded_fovs[l].lon
-
-                    tree = Kd_standard(uploaded_locs, param)
+                    # # upload best fovs
+                    # # print len(fovs)
+                    # all_sets, universe, weights = fovs_info(fovs)
+                    # # print len(all_sets), len(universe), len(weights)
+                    # covered_sets, covered_items, covered_weight = max_cover(universe, all_sets, bandwidth, weights)
+                    #
+                    # # locations of the uploaded fovs
+                    # uploaded_fovs = [fovs[idx] for idx in covered_sets]
+                    #
+                    # uploaded_locs = np.zeros((2, len(uploaded_fovs)))
+                    # for l in range(len(uploaded_fovs)):
+                    #     uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_fovs[l].lat, \
+                    #                                                uploaded_fovs[l].lon
+                    tree = Kd_standard(locs, param)
+                    # tree = Kd_standard(locs, param)
                 else:
                     logging.error('No such index structure!')
                     sys.exit(1)
 
                 tree.buildIndex()
-
 
                 all_values = []
                 # get leaf nodes (work cells)
@@ -186,21 +196,27 @@ def eval_analyst(param):
                     leaf_nodes = getLeafNode(tree, 1)
 
                 # each analyst chooses the best fovs in their assigned work cells
-                for (n_box, count) in leaf_nodes:
-                    if count > 0:
+                for node in leaf_nodes:
+                    if node.n_count > 0:
                         leaf_fovs = []
-                        for fov in fovs:
-                            if is_rect_cover(n_box, [fov.lat, fov.lon]):
-                                leaf_fovs.append(fov)
+                        for l in range(node.n_data.shape[1]):
+                            leaf_fovs.append(h[str(node.n_data[0][l]) + ";" + str(node.n_data[1][l])])
+
+                # for node in leaf_nodes:
+                #     if node.n_count > 0:
+                #         leaf_fovs = []
+                #         for fov in fovs:
+                #             if is_rect_cover(node.n_box, [fov.lat, fov.lon]):
+                #                 leaf_fovs.append(fov)
                         if len(leaf_fovs) > 0:
                             leaf_all_sets, leaf_universe, leaf_weights = fovs_info(fovs)
                             leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, bandwidth, leaf_weights)
                             all_values.append(leaf_covered_weight)
 
-
-                print len(all_values)
+                # print len(all_values)
+                # print time.time() - start
                 heap = heapsort(all_values)
-                for h in range(len(all_values) - param.ANALYST_COUNT):
+                for o in range(len(all_values) - param.ANALYST_COUNT):
                     heapq.heappop(heap)
 
                 res_cube_value[i, j, k] = sum(heap)

@@ -50,7 +50,7 @@ class Tree(object):
 
     def valid_work_cell(self, rect):
         # print rect[1][0] - rect[0][0], rect[1][1] - rect[0][1]
-        return rect[1][0] - rect[0][0] < 0.000457/2 or rect[1][1] - rect[0][1] < 0.0005865/2
+        return rect[1][0] - rect[0][0] < 0.00457/4 or rect[1][1] - rect[0][1] < 0.005865/4
 
     # this function is used in BDR paper
     def testLeaf_bdr(self, curr):

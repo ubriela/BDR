@@ -31,9 +31,17 @@ from Utils import is_rect_cover
 # seed_list = [2172]
 seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
+analyst = [6, 7, 8, 9, 10]
+# each analyst can handle an amount of work
+analyst_capacity = 4
+
+# each analyst can handle an amount of work
+capacity = [2, 3, 4, 5, 6]
+analyst_count = 8
+
 method_list = None
 exp_name = None
-dataset_identifier = "_uni"
+dataset_identifier = "_gau"
 
 def sample_data(data, p):
     # print data.shape
@@ -182,11 +190,6 @@ def eval_analyst(param):
     logging.info("eval_analyst")
     exp_name = "eval_analyst"
 
-    analyst = [4,5,6,7,8]
-    # each analyst can handle an amount of work
-    analyst_capacity = 4
-    # print threshold
-
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
     res_cube_value = np.zeros((len(analyst), len(seed_list), len(method_list)))
@@ -272,11 +275,6 @@ def eval_capacity(param):
     logging.info("eval_capacity")
     exp_name = "eval_capacity"
 
-    # each analyst can handle an amount of work
-    capacity = [2,3,4,5,6]
-    analyst = 6
-    # print threshold
-
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
     res_cube_value = np.zeros((len(capacity), len(seed_list), len(method_list)))
@@ -292,8 +290,8 @@ def eval_capacity(param):
                 locs[0][l], locs[1][l] = videos[l].fovs[0].lat, videos[l].fovs[0].lon
 
             for i in range(len(capacity)):
-                param.part_size = analyst
-                param.ANALYST_COUNT = analyst * analyst
+                param.part_size = analyst_count
+                param.ANALYST_COUNT = analyst_count * analyst_count
                 bandwidth = capacity[i] * param.ANALYST_COUNT
 
                 # upload best videos
@@ -360,10 +358,8 @@ def eval_skewness(param):
     logging.info("eval_skewness")
     exp_name = "eval_skewness"
 
-    analyst = 6
-    analyst_capacity = 2
-    param.part_size = analyst
-    param.ANALYST_COUNT = analyst * analyst
+    param.part_size = analyst_count
+    param.ANALYST_COUNT = analyst_count * analyst_count
     bandwidth = analyst_capacity * param.ANALYST_COUNT
 
     skewness = [1.6,1.8,2.0,2.2,2.4]
@@ -447,10 +443,8 @@ def eval_runtime(param):
     logging.info("eval_runtime")
     exp_name = "eval_runtime"
 
-    analyst = 6
-    analyst_capacity = 2
-    param.part_size = analyst
-    param.ANALYST_COUNT = analyst * analyst
+    param.part_size = analyst_count
+    param.ANALYST_COUNT = analyst_count * analyst_count
     bandwidth = analyst_capacity * param.ANALYST_COUNT
 
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
@@ -542,9 +536,9 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
-    # eval_analyst(param)
-    # eval_capacity(param)
-    # eval_skewness(param)
+    eval_analyst(param)
+    eval_capacity(param)
+    eval_skewness(param)
     eval_runtime(param)
     # eval_partition(data, param)
 
