@@ -32,16 +32,14 @@ from Utils import is_rect_cover
 seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
 analyst = [6, 7, 8, 9, 10]
-# each analyst can handle an amount of work
-analyst_capacity = 4
+analyst_count = 8
 
 # each analyst can handle an amount of work
 capacity = [2, 3, 4, 5, 6]
-analyst_count = 8
+analyst_capacity = 4
 
 method_list = None
 exp_name = None
-dataset_identifier = "_gau"
 
 def sample_data(data, p):
     # print data.shape
@@ -175,7 +173,7 @@ def gen_videos(param):
         # size = int(np.random.uniform(1,10))
 
         # print v.area()
-        v.value = random.randint(0,10) * v.area()
+        v.value = int(np.random.uniform(1,10)) * v.area()
         # print v.value
 
     return videos
@@ -186,9 +184,9 @@ def heapsort(iterable):
         heapq.heappush(h, value)
     return [heapq.heappop(h) for i in range(len(h))]
 
-def eval_analyst(param):
-    logging.info("eval_analyst")
-    exp_name = "eval_analyst"
+def video_eval_analyst(param):
+    logging.info("video_eval_analyst")
+    exp_name = "video_eval_analyst"
 
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
@@ -261,6 +259,7 @@ def eval_analyst(param):
                             val = zeroOneKnapsack(leaf_values, leaf_weights, analyst_capacity)
                             all_values.append(val[0])
 
+
                 heap = heapsort(all_values)
                 for h in range(len(all_values) - param.ANALYST_COUNT):
                     heapq.heappop(heap)
@@ -271,9 +270,9 @@ def eval_analyst(param):
     np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
 
-def eval_capacity(param):
-    logging.info("eval_capacity")
-    exp_name = "eval_capacity"
+def video_eval_capacity(param):
+    logging.info("video_eval_capacity")
+    exp_name = "video_eval_capacity"
 
     method_list = ['grid_standard', 'quad_standard', 'kd_standard']
 
@@ -354,9 +353,9 @@ def eval_capacity(param):
     np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
 
-def eval_skewness(param):
-    logging.info("eval_skewness")
-    exp_name = "eval_skewness"
+def video_eval_skewness(param):
+    logging.info("video_eval_skewness")
+    exp_name = "video_eval_skewness"
 
     param.part_size = analyst_count
     param.ANALYST_COUNT = analyst_count * analyst_count
@@ -439,9 +438,9 @@ def eval_skewness(param):
     np.savetxt(param.resdir + exp_name + "_"+ param.DATASET , res_value_summary, fmt='%.4f\t')
 
 
-def eval_runtime(param):
-    logging.info("eval_runtime")
-    exp_name = "eval_runtime"
+def video_eval_runtime(param):
+    logging.info("video_eval_runtime")
+    exp_name = "video_eval_runtime"
 
     param.part_size = analyst_count
     param.ANALYST_COUNT = analyst_count * analyst_count
@@ -536,10 +535,10 @@ if __name__ == '__main__':
     param.NDIM, param.NDATA = data.shape[0], data.shape[1]
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
-    eval_analyst(param)
-    eval_capacity(param)
-    eval_skewness(param)
-    eval_runtime(param)
+    video_eval_analyst(param)
+    video_eval_capacity(param)
+    video_eval_skewness(param)
+    video_eval_runtime(param)
     # eval_partition(data, param)
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")

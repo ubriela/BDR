@@ -60,6 +60,7 @@ class Generic(object):
 
     def buildIndex(self):
         self.root.n_count = self.getCount(self.root)
+        self.root.n_box = np.array([[self.param.x_min, self.param.y_min], [self.param.x_max, self.param.y_max]])
         queue = deque()
         queue.append(self.root)
         # nleaf = 0  # number of leaf node, for debug only
@@ -87,6 +88,8 @@ class Generic(object):
                         node.n_box = np.array([[split_arr[i], curr.n_box[0, 1]], [split_arr[i + 1], curr.n_box[1, 1]]])
                     else:  # split by y coord
                         node.n_box = np.array([[curr.n_box[0, 0], split_arr[i]], [curr.n_box[1, 0], split_arr[i + 1]]])
+                    # if node.n_box == None:
+                    #     print node.n_box
 
                     node.index = i
                     node.parent = curr

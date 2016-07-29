@@ -24,8 +24,8 @@ class Grid_standard(Grid):
 	    n_data_arr: data in each partitions
         """
         _box = curr.n_box
+        # print self.param.NDIM, _box
         dimP = curr.n_depth % self.param.NDIM  # split dimension
-
         split_arr = self.getEqualSplit(self.param.m, _box[0, dimP], _box[1, dimP])
         # print self.param.m
 

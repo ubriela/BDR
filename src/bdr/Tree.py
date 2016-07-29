@@ -49,11 +49,11 @@ class Tree(object):
         return count
 
     def valid_work_cell(self, rect):
-        # print rect[1][0] - rect[0][0], rect[1][1] - rect[0][1]
         return rect[1][0] - rect[0][0] < 0.00457/4 or rect[1][1] - rect[0][1] < 0.005865/4
 
     # this function is used in BDR paper
     def testLeaf_bdr(self, curr):
+        # print curr.n_data
         """ test whether a node should be a leaf node """
         if (curr.n_data is None or curr.n_data.shape[1] == 0) or \
             self.cell_count >= self.param.ANALYST_COUNT or \
@@ -76,6 +76,7 @@ class Tree(object):
     def buildIndex(self):
         """ Function to build the tree structure, fanout = 4 by default for spatial (2D) data """
         self.root.n_count = self.getCount(self.root)
+        self.root.n_box = np.array([[self.param.x_min, self.param.y_min], [self.param.x_max, self.param.y_max]])
         self.cell_count = 1
         try:
             import Queue as Q  # ver. < 3.0
@@ -90,6 +91,8 @@ class Tree(object):
             # print curr.n_count
             if curr.n_depth > max_depth:
                 max_depth = curr.n_depth
+
+            # print curr.n_count, curr.n_data, curr.n_box, curr.n_data.shape[0], curr.n_data.shape[1]
 
             if self.testLeaf_bdr(curr) is True:  # ## curr is a leaf node
                 curr.n_count = self.getCount(curr)

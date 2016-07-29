@@ -1,6 +1,7 @@
 __author__ = 'ubriela'
 
 from sets import Set
+import copy
 
 """
 weighted max cover problem
@@ -9,7 +10,9 @@ weighted max cover problem
 @budget: number of fov can be selected
 @weights: VA values of the unit cells
 """
-def max_cover(universe, all_sets, budget, weights):
+def max_cover(universe, _all_sets, budget, weights):
+    # having a copy of all_sets
+    all_sets = copy.deepcopy(_all_sets)
     covered_sets = Set([])
     covered_items = Set([])
 
@@ -22,6 +25,7 @@ def max_cover(universe, all_sets, budget, weights):
         for idx in all_sets.keys():
             curr_set = all_sets.get(idx)
             uncovered_items = curr_set - covered_items
+            # print len(uncovered_items)
             uncovered_weight = sum([weights[item] for item in uncovered_items])
 
             if uncovered_weight >= max_uncovered_weight:

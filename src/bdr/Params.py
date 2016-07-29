@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "gau"
+    DATASET = "napa"
 
     NDATA = None
     NDIM = None
@@ -9,6 +9,7 @@ class Params(object):
     nQuery = 2  # number of queries
     unitGrid = 0.01  # cell unit in kd-cell
     ONE_KM = 0.0089982311916  # convert km to degree
+
     ZIPFIAN_SKEW = 2
     URGENCY_RANDOM = True
 
@@ -20,9 +21,9 @@ class Params(object):
     # ANALYST_COUNT = 36
 
     part_size = 8
-    ANALYST_COUNT = 36
+    ANALYST_COUNT = 64
 
-    GRID_SIZE = 200
+    GRID_SIZE = 1700
     TIME_SNAPSHOT = 6
 
     def __init__(self, seed, x_min = None, y_min = None, x_max = None, y_max = None):

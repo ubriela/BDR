@@ -29,8 +29,6 @@ for x in cdi_arr:
     nvideo = round(((nresp + 0.0)/t_nresp) * N)
     min_lat, min_lng, max_lat, max_lng = lat - delta_lat/2, lng - delta_lng/2, lat + delta_lat/2, lng + delta_lng/2
 
-    # print nvideo
-
     # select nvideo videos in the corresponding grid
     nvideo_count = 0
     for v in videos:
@@ -49,21 +47,21 @@ vid = 0
 for x in nresp_arr:
     fv = int(round((x + 0.0)/t_nresp * len(filtered_videos)))
     print fv
-    # str_videos = ""
-    # for i in range(fv):
-    #     # print filtered_videos[vid].to_str()
-    #     str_videos = str_videos + filtered_videos[vid].to_str()
-    #     vid = vid + 1
-    #
-    #     if vid >= len(filtered_videos):
-    #         break
-    #
-    # # output into a file
-    # text_file = open("../../dataset/napa/snapshots/" + str(t) + ".txt", "w")
-    # text_file.write(str_videos)
-    # text_file.close()
-    #
-    # t = t + 1
+    str_videos = ""
+    for i in range(fv):
+        # print filtered_videos[vid].to_str()
+        str_videos = str_videos + filtered_videos[vid].to_str()
+        vid = vid + 1
+
+        if vid >= len(filtered_videos):
+            break
+
+    # output into a file
+    text_file = open("../../dataset/napa/snapshots/" + str(t) + ".txt", "w")
+    text_file.write(str_videos)
+    text_file.close()
+
+    t = t + 1
 
 
 # for v in filtered_videos:
