@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "napa"
+    DATASET = "uni"
 
     NDATA = None
     NDIM = None
