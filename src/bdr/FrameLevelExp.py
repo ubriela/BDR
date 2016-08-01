@@ -32,12 +32,12 @@ sys.path.append('../plot/code')
 from Utils import rect_area,zipf_pmf
 from Utils import is_rect_cover
 
-seed_list = [9110]
-# seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
+# seed_list = [9110]
+seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
 analyst = [6, 7, 8, 9, 10]
-analyst_count = 8
 
+analyst_count = 8
 # each analyst can handle an amount of work
 capacity = [2, 3, 4, 5, 6]
 analyst_capacity = 4
@@ -195,23 +195,23 @@ def fov_eval_analyst(param):
                     leaf_nodes = getLeafNode(tree, 1)
 
                 for node in leaf_nodes:
-                    # if node.n_count > 0:
                     leaf_fovs = []
                     # if method_list[k] == 'grid_standard' or method_list[k] == 'quad_standard':
-                    for l in range(node.n_data.shape[1]):
-                        leaf_fovs.append(h[str(node.n_data[0][l]) + ";" + str(node.n_data[1][l])])
-                    # else:
-                    #     for fov in fovs:
-                    #         if is_rect_cover(node.n_box, [fov.lat, fov.lon]):
-                    #             leaf_fovs.append(fov)
+                    if node.n_data is not None:
+                        for l in range(node.n_data.shape[1]):
+                            leaf_fovs.append(h[str(node.n_data[0][l]) + ";" + str(node.n_data[1][l])])
+                        # else:
+                        #     for fov in fovs:
+                        #         if is_rect_cover(node.n_box, [fov.lat, fov.lon]):
+                        #             leaf_fovs.append(fov)
 
-                    if len(leaf_fovs) > 0:
-                        leaf_all_sets, leaf_universe, leaf_weights = fovs_info(leaf_fovs)
-                        # update weight in leaf_weights
-                        for item in leaf_universe:
-                            leaf_weights[item] = weights[item]
-                        leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, analyst_capacity, leaf_weights)
-                        all_values.append(leaf_covered_weight)
+                        if len(leaf_fovs) > 0:
+                            leaf_all_sets, leaf_universe, leaf_weights = fovs_info(leaf_fovs)
+                            # update weight in leaf_weights
+                            for item in leaf_universe:
+                                leaf_weights[item] = weights[item]
+                            leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, analyst_capacity, leaf_weights)
+                            all_values.append(leaf_covered_weight)
 
                 # print len(all_values)
                 # print time.time() - start
@@ -243,7 +243,6 @@ def fov_eval_capacity(param):
             h[str(fov.lat) + ";" + str(fov.lon)] = fov
 
         all_sets, universe, weights = fovs_info(fovs)
-        # start = time.time()
         for k in range(len(method_list)):
             print method_list[k]
             # all fovs' locations
@@ -289,26 +288,25 @@ def fov_eval_capacity(param):
                     leaf_nodes = getLeafNode(tree, 1)
 
                 for node in leaf_nodes:
-                    # if node.n_count > 0:
-                    leaf_fovs = []
-                    # if method_list[k] == 'grid_standard' or method_list[k] == 'quad_standard':
-                    for l in range(node.n_data.shape[1]):
-                        leaf_fovs.append(h[str(node.n_data[0][l]) + ";" + str(node.n_data[1][l])])
-                    # else:
-                    #     for fov in fovs:
-                    #         if is_rect_cover(node.n_box, [fov.lat, fov.lon]):
-                    #             leaf_fovs.append(fov)
+                    if node.n_data is not None:
+                        leaf_fovs = []
+                        # if method_list[k] == 'grid_standard' or method_list[k] == 'quad_standard':
+                        for l in range(node.n_data.shape[1]):
+                            leaf_fovs.append(h[str(node.n_data[0][l]) + ";" + str(node.n_data[1][l])])
+                        # else:
+                        #     for fov in fovs:
+                        #         if is_rect_cover(node.n_box, [fov.lat, fov.lon]):
+                        #             leaf_fovs.append(fov)
 
-                    if len(leaf_fovs) > 0:
-                        leaf_all_sets, leaf_universe, leaf_weights = fovs_info(leaf_fovs)
-                        # update weight in leaf_weights
-                        for item in leaf_universe:
-                            leaf_weights[item] = weights[item]
-                        leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, capacity[i], leaf_weights)
-                        all_values.append(leaf_covered_weight)
+                        if len(leaf_fovs) > 0:
+                            leaf_all_sets, leaf_universe, leaf_weights = fovs_info(leaf_fovs)
+                            # update weight in leaf_weights
+                            for item in leaf_universe:
+                                leaf_weights[item] = weights[item]
+                            leaf_covered_sets, leaf_covered_items, leaf_covered_weight = max_cover(leaf_universe, leaf_all_sets, capacity[i], leaf_weights)
+                            all_values.append(leaf_covered_weight)
 
                 # print len(all_values)
-                # print time.time() - start
                 print len(all_values), param.ANALYST_COUNT
                 heap = heapsort(all_values)
                 for o in range(len(all_values) - param.ANALYST_COUNT):

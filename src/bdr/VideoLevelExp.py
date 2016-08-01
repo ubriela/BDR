@@ -20,6 +20,7 @@ from Kd_standard import Kd_standard
 from Quad_standard import Quad_standard
 from knapsack import zeroOneKnapsack
 import heapq
+from Node import Node
 
 sys.path.append('../plot')
 sys.path.append('../plot/code')
@@ -137,6 +138,32 @@ def getLeafNode(tree, type):
     return leaf_boxes
 
 
+def getLeafNode2(tree, type):
+    leaf_nodes = []
+    if type == 1:
+        for l1_child in tree.root.children:
+            # print len(tree.root.children)
+            if not l1_child.n_isLeaf and l1_child.children is not None:
+                # print len(l1_child.children)
+                for l2_child in l1_child.children:  # child1 is a first-level cell
+                    leaf_nodes.append(l2_child)
+            # leaf_boxes.append((l1_child.n_box, l1_child.n_count))
+    elif type == 2:
+        queue = deque()
+        queue.append(tree.root)
+        while len(queue) > 0:
+            curr = queue.popleft()
+            if curr.n_isLeaf is False:
+                queue.append(curr.nw)
+                queue.append(curr.ne)
+                queue.append(curr.sw)
+                queue.append(curr.se)
+            else:
+                leaf_nodes.append(curr)
+
+    return leaf_nodes
+
+
 populations_data = None
 def compute_urgency(node):
     if Params.URGENCY_RANDOM == True:
@@ -158,6 +185,7 @@ def compute_urgency(node):
         y = np.searchsorted(populations[dim, :], query[1, dim], side='right')
         populations = populations[:, x:y + 1]
     node.urgency = populations.shape[1]
+    return  node.urgency
 
 def gen_videos(param):
     np.random.seed(param.seed)
@@ -173,7 +201,13 @@ def gen_videos(param):
         # size = int(np.random.uniform(1,10))
 
         # print v.area()
-        v.value = int(np.random.uniform(1,10)) * v.area()
+        if Params.URGENCY_RANDOM == True:
+            v.value = int(np.random.uniform(1,10)) * v.area()
+        else:
+            node = Node()
+            lat, lon = v.fovs[0].lat, v.fovs[0].lon
+            node.n_box = np.array([[lat - Params.ONE_KM/5, lon - Params.ONE_KM/5], [lat + Params.ONE_KM/5, lon + Params.ONE_KM/5]])
+            v.value = compute_urgency(node) * v.area()
         # print v.value
 
     return videos
@@ -212,9 +246,7 @@ def video_eval_analyst(param):
 
                 if method_list[k] == 'grid_standard': # if grid --> partition first, select later
                     tree = Grid_standard(locs, param)
-                elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(locs, param)
-                elif method_list[k] == 'kd_standard':
+                else:
                     # upload best videos
                     result = zeroOneKnapsack(values, weights, bandwidth)
                     # optimal_va = result[0]
@@ -226,11 +258,10 @@ def video_eval_analyst(param):
                     for l in range(len(uploaded_videos)):
                         uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
                                                                    uploaded_videos[l].fovs[0].lon
-
-                    tree = Kd_standard(uploaded_locs, param)
-                else:
-                    logging.error('No such index structure!')
-                    sys.exit(1)
+                    if method_list[k] == 'quad_standard':
+                        tree = Quad_standard(uploaded_locs, param)
+                    elif method_list[k] == 'kd_standard':
+                        tree = Kd_standard(uploaded_locs, param)
 
                 tree.buildIndex()
                 all_values = []
@@ -300,9 +331,8 @@ def video_eval_capacity(param):
 
                 if method_list[k] == 'grid_standard': # if grid --> partition first, select later
                     tree = Grid_standard(locs, param)
-                elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(locs, param)
-                elif method_list[k] == 'kd_standard':
+                else:
+                    # upload best videos
                     result = zeroOneKnapsack(values, weights, bandwidth)
                     # optimal_va = result[0]
 
@@ -313,11 +343,10 @@ def video_eval_capacity(param):
                     for l in range(len(uploaded_videos)):
                         uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
                                                                    uploaded_videos[l].fovs[0].lon
-
-                    tree = Kd_standard(uploaded_locs, param)
-                else:
-                    logging.error('No such index structure!')
-                    sys.exit(1)
+                    if method_list[k] == 'quad_standard':
+                        tree = Quad_standard(uploaded_locs, param)
+                    elif method_list[k] == 'kd_standard':
+                        tree = Kd_standard(uploaded_locs, param)
 
                 tree.buildIndex()
                 all_values = []
@@ -386,10 +415,10 @@ def video_eval_skewness(param):
 
                 if method_list[k] == 'grid_standard': # if grid --> partition first, select later
                     tree = Grid_standard(locs, param)
-                elif method_list[k] == 'quad_standard':
-                    tree = Quad_standard(locs, param)
-                elif method_list[k] == 'kd_standard':
+                else:
+                    # upload best videos
                     result = zeroOneKnapsack(values, weights, bandwidth)
+                    # optimal_va = result[0]
 
                     # locations of the uploaded videos
                     uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
@@ -398,11 +427,10 @@ def video_eval_skewness(param):
                     for l in range(len(uploaded_videos)):
                         uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
                                                                    uploaded_videos[l].fovs[0].lon
-
-                    tree = Kd_standard(uploaded_locs, param)
-                else:
-                    logging.error('No such index structure!')
-                    sys.exit(1)
+                    if method_list[k] == 'quad_standard':
+                        tree = Quad_standard(uploaded_locs, param)
+                    elif method_list[k] == 'kd_standard':
+                        tree = Kd_standard(uploaded_locs, param)
 
                 tree.buildIndex()
                 all_values = []
@@ -462,16 +490,20 @@ def video_eval_runtime(param):
             for l in range(len(videos)):
                 locs[0][l], locs[1][l] = videos[l].fovs[0].lat, videos[l].fovs[0].lon
 
+            # h = {}
+            # for videos in videos:
+            #     h[str(videos[l].fovs[0].lat) + ";" + str(videos[l].fovs[0].lon)] = videos
+
             # upload best videos
             weights = [v.size for v in videos]
             values = [v.value for v in videos]
 
             if method_list[k] == 'grid_standard':
                 tree = Grid_standard(locs, param)
-            elif method_list[k] == 'quad_standard':
-                tree = Quad_standard(locs, param)
-            elif method_list[k] == 'kd_standard':
+            else:
+                # upload best videos
                 result = zeroOneKnapsack(values, weights, bandwidth)
+                # optimal_va = result[0]
 
                 # locations of the uploaded videos
                 uploaded_videos = [videos[l] for l in range(len(result[1])) if result[1][l] != 0]
@@ -480,11 +512,11 @@ def video_eval_runtime(param):
                 for l in range(len(uploaded_videos)):
                     uploaded_locs[0][l], uploaded_locs[1][l] = uploaded_videos[l].fovs[0].lat, \
                                                                uploaded_videos[l].fovs[0].lon
+                if method_list[k] == 'quad_standard':
+                    tree = Quad_standard(uploaded_locs, param)
+                elif method_list[k] == 'kd_standard':
+                    tree = Kd_standard(uploaded_locs, param)
 
-                tree = Kd_standard(uploaded_locs, param)
-            else:
-                logging.error('No such index structure!')
-                sys.exit(1)
             tree.buildIndex()
             partition_duration = time.time() - start
 
@@ -501,6 +533,10 @@ def video_eval_runtime(param):
             for (n_box, count) in leaf_nodes:
                 if count > 0:
                     leaf_values, leaf_weights = [], []
+
+                    # for l in range(node.n_data.shape[1]):
+                    #     leaf_fovs.append(h[str(node.n_data[0][l]) + ";" + str(node.n_data[1][l])])
+
                     for l in range(len(videos)):
                         loc = [videos[l].fovs[0].lat, videos[l].fovs[0].lon]
                         if is_rect_cover(n_box, loc):
@@ -536,9 +572,9 @@ if __name__ == '__main__':
     param.LOW, param.HIGH = np.amin(data, axis=1), np.amax(data, axis=1)
 
     video_eval_analyst(param)
-    video_eval_capacity(param)
-    video_eval_skewness(param)
-    video_eval_runtime(param)
+    # video_eval_capacity(param)
+    # video_eval_skewness(param)
+    # video_eval_runtime(param)
     # eval_partition(data, param)
 
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()) + "  END")

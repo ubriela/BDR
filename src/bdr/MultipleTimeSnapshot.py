@@ -33,15 +33,15 @@ sys.path.append('../plot/code')
 
 from Utils import rect_area,zipf_pmf
 
-seed_list = [9110]
+seed_list = [9110, 4064, 6903]
 # seed_list = [9110, 4064, 6903, 7509, 5342, 3230, 3584, 7019, 3564, 6456]
 
-analyst = [6, 7, 8, 9, 10]
+analyst = [4, 5, 6, 7, 8]
 analyst_count = 8
 
 # each analyst can handle an amount of work
 capacity = [2, 3, 4, 5, 6]
-analyst_capacity = 4
+analyst_capacity = 2
 
 
 method_list = None
