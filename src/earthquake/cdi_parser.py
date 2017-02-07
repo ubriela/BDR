@@ -4,6 +4,7 @@ __author__ = 'ubriela'
 import xml.etree.ElementTree as ET
 
 
+# http://earthquake.usgs.gov/archive/product/dyfi/nc72282711/us/1470094942810/cdi_geo.xml
 def cdi_parse(cdi_file='../../dataset/napa/cdi_geo.xml'):
     tree = ET.parse(cdi_file)
     root = tree.getroot()[0]
