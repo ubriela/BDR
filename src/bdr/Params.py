@@ -1,6 +1,6 @@
 # Basic parameters
 class Params(object):
-    DATASET = "uni"
+    DATASET = "napa"
 
     NDATA = None
     NDIM = None
@@ -23,7 +23,7 @@ class Params(object):
     part_size = 8
     ANALYST_COUNT = 64
 
-    GRID_SIZE = 1700
+    GRID_SIZE = 400
     TIME_SNAPSHOT = 6
 
     def __init__(self, seed, x_min = None, y_min = None, x_max = None, y_max = None):
